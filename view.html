@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK Download - Injector Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); 
+            color: white; min-height: 100vh; overflow-x: hidden;
+        }
+        
+        #particles-js { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        
+        .header {
+            background: rgba(15,23,42,0.95); backdrop-filter: blur(20px);
+            padding: 1.5rem 2rem; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .back-btn { 
+            background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; 
+            padding: 0.75rem 1.5rem; border-radius: 12px; text-decoration: none; 
+            font-weight: 600; transition: all 0.3s;
+        }
+        .back-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(59,130,246,0.4); }
+        
+        .apk-container { max-width: 1000px; margin: 3rem auto; padding: 0 2rem; }
+        
+        .apk-hero {
+            background: rgba(255,255,255,0.95); border-radius: 24px; padding: 3rem;
+            text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            border: 1px solid rgba(226,232,240,0.5);
+        }
+        
+        .apk-icon { width: 120px; height: 120px; border-radius: 24px; background: linear-gradient(135deg, #10b981, #34d399); margin: 0 auto 2rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white; box-shadow: 0 20px 40px rgba(16,185,129,0.3); }
+        
+        .apk-title { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem; }
+        .apk-price { font-size: 2rem; font-weight: 800; color: #10b981; margin-bottom: 1.5rem; }
+        
+        .apk-actions { display: flex; flex-direction: column; gap: 1.5rem; align-items: center; margin: 2rem 0; }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #10b981, #059669); color: white;
+            border: none; padding: 1.5rem 4rem; border-radius: 16px; font-weight: 700;
+            font-size: 1.2rem; cursor: pointer; transition: all 0.4s;
+            box-shadow: 0 15px 35px rgba(16,185,129,0.4); width: 100%; max-width: 300px;
+            text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+            gap: 0.5rem;
+        }
+        .download-btn:hover { transform: translateY(-4px); box-shadow: 0 25px 50px rgba(16,185,129,0.5); }
+        .download-btn:disabled { background: #6b7280; cursor: not-allowed; transform: none; }
+        
+        .share-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;
+            border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s; width: 100%; max-width: 250px;
+        }
+        .share-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(59,130,246,0.4); }
+        
+        .apk-details { background: rgba(248,250,252,0.8); border-radius: 16px; padding: 2rem; margin-top: 2rem; }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 1rem; }
+        .detail-label { font-weight: 600; color: #64748b; }
+        .detail-value { color: #1e293b; font-weight: 500; font-family: monospace; word-break: break-all; }
+        
+        .qr-code { text-align: center; margin: 2rem 0; background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        .loading, .error { display: flex; flex-direction: column; align-items: center; padding: 4rem 2rem; text-align: center; }
+        .spinner {
+            width: 60px; height: 60px; border: 4px solid #f3f4f6; border-top: 4px solid #10b981; 
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .notification {
+            position: fixed; top: 20px; right: 20px; background: #10b981; color: white;
+            padding: 1rem 1.5rem; border-radius: 12px; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transform: translateX(400px); transition: all 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            .apk-hero { padding: 2rem 1rem; margin: 2rem 1rem; }
+            .apk-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="header">
+        <div class="header-content">
+            <a href="./" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <span style="opacity: 0.8;">Official APK</span>
+        </div>
+    </div>
+    
+    <div class="apk-container">
+        <!-- Loading -->
+        <div id="loadingScreen" class="loading">
+            <div class="spinner"></div>
+            <p id="loadingText">Loading APK...</p>
+        </div>
+        
+        <!-- Error -->
+        <div id="errorScreen" class="error" style="display: none;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #ef4444; margin-bottom: 1rem;"></i>
+            <h2 id="errorTitle">Error</h2>
+            <p id="errorMessage">Something went wrong</p>
+            <a href="./" class="download-btn" style="background: #6b7280; margin-top: 2rem;">
+                <i class="fas fa-home"></i> Go Home
+            </a>
+        </div>
+        
+        <!-- Success -->
+        <div id="successScreen" style="display: none;">
+            <div class="apk-hero">
+                <div class="apk-icon">
+                    <i class="fas fa-mobile-android"></i>
+                </div>
+                <h1 class="apk-title" id="apkTitle">Loading...</h1>
+                <div class="apk-price" id="apkPrice">₱0.00</div>
+                
+                <div class="apk-actions">
+                    <a id="downloadBtn" class="download-btn">
+                        <i class="fas fa-download"></i> Download APK
+                    </a>
+                    <button id="shareBtn" class="share-btn">
+                        <i class="fas fa-share-alt"></i> Copy Link
+                    </button>
+                </div>
+                
+                <div class="qr-code">
+                    <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.95rem;">📱 Scan QR Code</p>
+                    <div id="qrCode" style="width: 200px; height: 200px; margin: 0 auto;"></div>
+                </div>
+            </div>
+            
+            <div class="apk-details">
+                <h3 style="color: #1e293b; margin-bottom: 1.5rem; font-size: 1.3rem;">📋 APK Info</h3>
+                <div class="detail-row">
+                    <span class="detail-label">ID:</span>
+                    <span class="detail-value" id="productId">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Seller:</span>
+                    <span class="detail-value" id="sellerName">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Price:</span>
+                    <span class="detail-value" id="priceDisplay">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Direct URL:</span>
+                    <span class="detail-value" id="directUrl" style="font-size: 0.85rem;">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script
+        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        // Global variables
+        let currentProductId = null;
+        let currentProduct = null;
+        
+        window.onload = function() {
+            initParticles();
+            parseUrlAndLoad();
+        };
+        
+        function parseUrlAndLoad() {
+            // Get ID from URL (?id=ABC123)
+            const urlParams = new URLSearchParams(window.location.search);
+            currentProductId = urlParams.get('id');
+            
+            if (!currentProductId) {
+                showError('No APK ID found', 'Invalid link. No product ID in URL.');
+                return;
+            }
+            
+            console.log('📱 Loading APK:', currentProductId);
+            loadProductDetails();
+        }
+        
+        async function loadProductDetails() {
+            try {
+                document.getElementById('loadingText').textContent = 'Fetching APK details...';
+                
+                // Fetch from Firebase
+                const snapshot = await db.ref('shop/products/' + currentProductId).once('value');
+                
+                if (!snapshot.exists()) {
+                    throw new Error('Product not found');
+                }
+                
+                currentProduct = snapshot.val();
+                
+                // Populate UI
+                populateUI();
+                
+                // Generate QR
+                generateQR();
+                
+            } catch (error) {
+                console.error('Load error:', error);
+                showError('APK Not Found', error.message || 'Product not available.');
+            }
+        }
+        
+        function populateUI() {
+            // Basic info
+            document.getElementById('apkTitle').textContent = currentProduct.name || 'Unnamed APK';
+            document.getElementById('apkPrice').textContent = `₱${parseFloat(currentProduct.price || 0).toFixed(2)}`;
+            document.getElementById('productId').textContent = currentProductId;
+            document.getElementById('sellerName').textContent = currentProduct.owner || 'Unknown';
+            document.getElementById('priceDisplay').textContent = `₱${parseFloat(currentProduct.price || 0).toFixed(2)}`;
+            
+            // Download button
+            const downloadBtn = document.getElementById('downloadBtn');
+            if (currentProduct.hostingUrl) {
+                downloadBtn.href = currentProduct.hostingUrl;
+                downloadBtn.innerHTML = `<i class="fas fa-download"></i> Download APK`;
+                downloadBtn.target = '_blank';
+            } else {
+                downloadBtn.innerHTML = `<i class="fas fa-clock"></i> APK Not Ready`;
+                downloadBtn.style.background = '#6b7280';
+                downloadBtn.href = '#';
+            }
+            
+            // Direct URL
+            document.getElementById('directUrl').textContent = currentProduct.hostingUrl || 'Not uploaded yet';
+            
+            // Show success screen
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('successScreen').style.display = 'block';
+        }
+        
+        function generateQR() {
+            const currentUrl = window.location.href;
+            QRCode.toCanvas(document.getElementById('qrCode'), currentUrl, {
+                width: 200,
+                margin: 1,
+                color: {
+                    dark: '#1e293b',
+                    light: '#ffffff'
+                }
+            }, function (error) {
+                if (error) console.error('QR Error:', error);
+            });
+        }
+        
+        document.getElementById('shareBtn').onclick = function() {
+            const shareUrl = window.location.href;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showNotification('🔗 Link copied to clipboard!');
+            });
+        };
+        
+        function showError(title, message) {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('errorScreen').style.display = 'flex';
+            document.getElementById('errorTitle').textContent = title;
+            document.getElementById('errorMessage').textContent = message;
+        }
+        
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                notif.style.transform = 'translateX(400px)';
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
+        }
+        
+        function initParticles() {
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', {
+                    particles: {
+                        number: { value: 50 },
+                        color: { value: ['#10b981', '#3b82f6', '#8b5cf6'] },
+                        shape: { type: 'circle' },
+                        opacity: { value: 0.3 },
+                        size: { value: 3 },
+                        line_linked: { enable: true, distance: 120, opacity: 0.2 },
+                        move: { speed: 1 }
+                    },
+                    interactivity: {
+                        events: { onhover: { enable: true, mode: 'repulse' } }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

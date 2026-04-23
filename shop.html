@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - Injector Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Sidebar Toggle Button -->
+<button class="menu-toggle" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar -->
+<div id="sidebar" class="shop-sidebar">
+    
+    <!-- Update shop.html sidebar -->
+    <div class="shop-sidebar-item" onclick="window.location.href='buyer-dashboard.html'">
+        <i class="fas fa-shopping-cart"></i>
+        Your Purchases <span id="purchaseCount">0</span>
+    </div>
+    <div class="shop-sidebar-item" onclick="window.location.href='seller-dashboard.html'">
+        <i class="fas fa-list-alt"></i>
+        Your Orders <span id="sellerOrderCount">0</span>
+    </div>
+</div>
+
+<!-- overlay -->
+<div id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- button -->
+<button class="menu-btn" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+</button>
+<!-- Overlay -->
+<div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+    <div id="particles-js"></div>
+    
+    <!-- Header -->
+    <header class="shop-header-main">
+        <div class="container">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+            <h1><i class="fas fa-store"></i> MARKETPLACE </h1>
+            <button class="upload-product-btn" onclick="openUploadProduct()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </header>
+<!-- ADD SA SHOP.HTML AFTER HEADER -->
+
+    <!-- Shop Content -->
+    <div class="shop-container">
+        <div class="shop-tabs">
+            <button class="shop-tab-btn active" onclick="switchShopTab('featured')">
+                <i class="fas fa-star"></i> Featured
+            </button>
+            <button class="shop-tab-btn" onclick="switchShopTab('popular')">
+                <i class="fas fa-fire"></i> Most Bought
+            </button>
+            <button class="shop-tab-btn" onclick="switchShopTab('new')">
+                <i class="fas fa-plus"></i> New
+            </button>
+        </div>
+
+        <div id="featured" class="shop-section active"></div>
+        <div id="popular" class="shop-section"></div>
+        <div id="new" class="shop-section"></div>
+    </div>
+
+<div id="uploadProductModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus"></i> Upload APK Product</h3>
+            <button class="modal-close" onclick="closeUploadProduct()">×</button>
+        </div>
+        <form id="productForm">
+            <div class="form-group">
+                <label><i class="fas fa-tag"></i> Product Name</label>
+                <input type="text" id="productName" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-dollar-sign"></i> Price (PHP)</label>
+                <input type="number" id="productPrice" min="1" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-align-left"></i> Description</label>
+                <textarea id="productDesc" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-image"></i> Thumbnail</label>
+                <input type="file" id="productThumbnail" accept="image/*" required>
+                <img id="thumbPreview" class="preview-icon">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-cloud-upload-alt"></i> Product Hosting *</label>
+                <input type="text" id="hostingUrl" placeholder="https://your-supabase-url.supabase.co/storage/v1/object/public/Shop-ni-shan/your-file.apk" required>
+                <div style="margin-top: 0.5rem;">
+                    <button type="button" class="btn-secondary btn-sm" onclick="openFileManager()" style="width: 100%; margin-top: 0.5rem;">
+                        <i class="fas fa-folder-open"></i> Open File Manager
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-key"></i> Keys</label>
+                <textarea id="manualKeys" rows="4" placeholder="Enter keys one per line&#10;Example:&#10;KEY1-ABC123-001&#10;KEY2-DEF456-002&#10;KEY3-GHI789-003" style="width: 100%; padding: 1rem; border-radius: 8px; border: 2px solid #e2e8f0; font-family: monospace; font-size: 14px;"></textarea>
+                <small style="color: #64748b;">Enter keys manually (one per line). Keys will be generated after seller approval.</small>
+            </div>
+            <button type="submit" class="btn-primary btn-full">Upload Product</button>
+        </form>
+    </div>
+</div>
+    
+    <!-- Purchase Modal -->
+<!-- Updated Purchase Modal -->
+<div id="purchaseModal" class="modal-overlay">
+    <div class="purchase-modal">
+        <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #10b981; margin-bottom: 1rem;"></i>
+        <h2>Complete Your Purchase</h2>
+        
+        <div class="purchase-details">
+            <div class="detail-row">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value" id="purchaseDate"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Product:</span>
+                <span class="detail-value" id="purchaseProduct"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Seller:</span>
+                <span class="detail-value" id="purchaseSeller"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Amount:</span>
+                <span class="detail-value" id="purchaseAmount">₱0.00</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label><i class="fas fa-phone"></i> Your GCash Number</label>
+            <input type="tel" id="buyerGcash" placeholder="09XXXXXXXXX" required>
+        </div>
+        
+              
+        <div class="form-group">
+            <label><i class="fas fa-image"></i> Payment Proof (Screenshot)</label>
+            <input type="file" id="proofFile" accept="image/*" required>
+            <img id="proofPreview" class="preview-icon" style="max-height: 150px;">
+        </div>
+        
+        <!-- Replace this section in your upload modal -->
+
+        <div class="gcash-container">
+            <div class="gcash-info">Send to Seller's GCash</div>
+            <div class="gcash-number" id="sellerGcash"></div>
+            <button class="copy-gcash" onclick="copySellerGcash()">
+                <i class="fas fa-copy"></i> Copy Number
+            </button>
+        </div>
+        
+        <button class="btn-primary btn-full" onclick="confirmPurchase()">
+            <i class="fas fa-check"></i> Submit Purchase
+        </button>
+    </div>
+</div>
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="shop.js"></script>
+</body>
+</html>
+

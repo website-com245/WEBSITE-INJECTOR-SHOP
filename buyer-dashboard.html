@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Purchases - Injector Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            animation: bgShift 20s ease-in-out infinite alternate;
+        }
+        
+        @keyframes bgShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+        
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        /* LOADING SCREEN */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        
+        .loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(16, 185, 129, 0.2);
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, #0f172a 100%);
+            backdrop-filter: blur(20px);
+            padding: 2rem 0;
+            z-index: 1000;
+            box-shadow: 2px 0 40px rgba(0, 0, 0, 0.4);
+            overflow-y: auto;
+            transform: translateX(0);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sidebar-header {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            margin-bottom: 2rem;
+            animation: slideInDown 0.6s ease-out;
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .sidebar-item {
+            padding: 1.2rem 2rem;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), transparent);
+            transition: width 0.3s;
+        }
+        
+        .sidebar-item:hover::before,
+        .sidebar-item.active::before {
+            width: 100%;
+        }
+        
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            transform: translateX(8px);
+        }
+        
+        .sidebar-item i {
+            width: 20px;
+        }
+        
+        .purchase-count {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 280px;
+            padding: 2.5rem;
+            min-height: 100vh;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* MOBILE */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+            
+            .mobile-menu-btn {
+                position: fixed;
+                top: 25px;
+                left: 25px;
+                z-index: 1001;
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.9));
+                color: white;
+                border: none;
+                width: 60px;
+                height: 60px;
+                border-radius: 16px;
+                font-size: 1.5rem;
+                cursor: pointer;
+                box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+                transition: all 0.3s;
+            }
+            
+            .mobile-menu-btn:hover {
+                transform: scale(1.05) rotate(90deg);
+                box-shadow: 0 12px 35px rgba(16, 185, 129, 0.6);
+            }
+        }
+        
+        /* PURCHASES GRID */
+        .purchases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+        
+        .purchase-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            color: #1e293b;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .purchase-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+            transform: scaleX(0);
+            transition: transform 0.4s;
+        }
+        
+        .purchase-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .purchase-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2);
+        }
+        
+        .purchase-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+        
+        .purchase-status {
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .status-pending {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #d97706;
+        }
+        
+        .status-completed {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #059669;
+        }
+        
+        .status-download {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #2563eb;
+        }
+        
+        .product-info {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .product-thumbnail {
+            width: 90px;
+            height: 90px;
+            border-radius: 16px;
+            object-fit: cover;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+        
+        .product-thumbnail:hover {
+            transform: scale(1.05);
+        }
+        
+        .product-details h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .purchase-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 1.25rem 2.5rem;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-download::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-download:hover:not(:disabled)::before {
+            left: 100%;
+        }
+        
+        .btn-download:hover:not(:disabled) {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.5);
+        }
+        
+        .btn-download:disabled {
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .gcash-info {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border-left: 5px solid #10b981;
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            
+            0%,
+            100% {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            }
+            
+            50% {
+                box-shadow: 0 8px 35px rgba(16, 185, 129, 0.2);
+            }
+        }
+        
+        .proof-image {
+            max-width: 100%;
+            border-radius: 16px;
+            margin-top: 1rem;
+            cursor: pointer;
+            max-height: 140px;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .proof-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* PAGE HEADER */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        
+        .page-title {
+            animation: slideInLeft 0.8s ease-out;
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .purchases-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+        
+        /* ENHANCED NOTIFICATIONS */
+        .notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 1.5rem 2.5rem;
+            border-radius: 20px;
+            z-index: 10001;
+            font-weight: 600;
+            transform: translateX(400px);
+            opacity: 0;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3) translateX(400px);
+                opacity: 0;
+            }
+            
+            50% {
+                transform: scale(1.05);
+            }
+            
+            70% {
+                transform: scale(0.9) translateX(0);
+            }
+            
+            100% {
+                transform: scale(1) translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- LOADING SCREEN -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <p style="margin-top: 2rem; font-size: 1.1rem; color: #94a3b8;">Loading your purchases...</p>
+    </div>
+    
+    <div id="particles-js"></div>
+    
+    <!-- MOBILE MENU BUTTON -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()" title="Menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2 style="margin: 0; font-size: 1.5rem;"><i class="fas fa-shopping-bag"></i> Your Purchases</h2>
+            <p style="color: #94a3b8; font-size: 0.9rem; margin: 0.75rem 0 0 0;">Manage your premium orders</p>
+        </div>
+        <!-- Update sidebar items in admin-dashboard.html -->
+        <div class="sidebar-item active" onclick="showPurchases()">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Your Purchases <span class="purchase-count" id="purchaseCount">0</span></span>
+        </div>
+        <a href="index.html" class="sidebar-item">
+            <i class="fas fa-home"></i> Back to Home
+        </a>
+        <a href="shop.html" class="sidebar-item">
+            <i class="fas fa-store"></i> Shop
+        </a>
+        <!-- Remove or comment out admin-dashboard link for regular users -->
+        <!-- <a href="admin-dashboard.html" class="sidebar-item"> -->
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1 style="margin: 0; font-size: 3rem; display: flex; align-items: center; gap: 1.5rem;">
+                    <i class="fas fa-receipt"></i> Your Purchases
+                </h1>
+                <p style="color: #94a3b8; margin: 0.75rem 0 0 0; font-size: 1.1rem;">Track and download your purchased products</p>
+            </div>
+        </div>
+        
+        <div id="purchasesContainer" class="purchases-grid">
+            <!-- Purchases will be loaded here -->
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        let currentUser = localStorage.getItem('apkUser') || 'guest';
+        let userPurchases = {};
+        let products = {};
+        
+        window.onload = function() {
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('fade-out');
+            }, 1500);
+            initParticles();
+            loadUserData();
+        };
+        
+        function loadUserData() {
+            // Load products first
+            db.ref('shop/products').on('value', snapshot => {
+                products = snapshot.val() || {};
+                loadUserPurchases();
+            });
+            
+            // Load user purchases
+            loadUserPurchases();
+        }
+        
+        function loadUserPurchases() {
+            db.ref('shop/orders').orderByChild('buyer').equalTo(currentUser).on('value', snapshot => {
+                userPurchases = snapshot.val() || {};
+                renderPurchases();
+                updatePurchaseCount();
+            });
+        }
+        
+        function renderPurchases() {
+            const container = document.getElementById('purchasesContainer');
+            const purchaseArray = Object.entries(userPurchases).map(([id, purchase]) => ({ id, ...purchase }));
+            
+            container.innerHTML = '';
+            
+            if (purchaseArray.length === 0) {
+                container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 6rem 2rem; color: #64748b;">
+                <i class="fas fa-shopping-cart" style="font-size: 5rem; margin-bottom: 2rem; opacity: 0.5;"></i>
+                <h3 style="color: #94a3b8; font-size: 2rem; margin-bottom: 1rem;">No purchases yet</h3>
+                <p style="font-size: 1.2rem; margin-bottom: 2rem;">Buy products from the shop to see them here</p>
+                <a href="shop.html" style="
+                    background: linear-gradient(135deg, #10b981, #059669); 
+                    color: white; padding: 1.5rem 3rem; border-radius: 16px; 
+                    text-decoration: none; font-weight: 700; display: inline-block; 
+                    margin-top: 1rem; box-shadow: 0 15px 35px rgba(16,185,129,0.4);
+                    transition: all 0.3s;
+                " onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    Go to Shop
+                </a>
+            </div>
+        `;
+                return;
+            }
+            
+            purchaseArray.sort((a, b) => b.timestamp - a.timestamp).forEach((purchase, index) => {
+                const product = products[purchase.productId];
+                if (!product) return;
+                
+                const row = document.createElement('div');
+                row.className = 'purchase-card';
+                row.style.animationDelay = `${index * 0.1}s`;
+                row.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                
+                // ✅ FIXED STATUS LOGIC - Use 'purchase' not 'order'
+                const statusClass = purchase.status === 'approved' || purchase.status === 'download' || purchase.status === 'completed' ? 'completed' : 'pending';
+                const statusText = purchase.status === 'download' ? 'Download Ready' :
+                    (purchase.status === 'approved' || purchase.status === 'completed') ? 'Approved - Download Ready' :
+                    purchase.status === 'rejected' ? 'Rejected' : 'Pending Approval';
+                
+                row.innerHTML = `
+            <div class="purchase-header">
+                <div>
+                    <h3 style="margin: 0 0 0.75rem 0; color: #1e293b;">${product.name}</h3>
+                    <div style="color: #64748b; font-size: 0.95rem;">${new Date(purchase.timestamp).toLocaleString()}</div>
+                </div>
+                <div class="purchase-status status-${statusClass}">
+                    ${statusText}
+                </div>
+            </div>
+
+            <div class="product-info">
+                <img src="${product.thumbnail || 'https://via.placeholder.com/90x90/1e293b/94a3b8?text=No+Image'}" 
+                     alt="${product.name}" class="product-thumbnail">
+                <div style="flex: 1;">
+                    <h3 style="color: #1e293b; margin-bottom: 0.5rem;">${product.name}</h3>
+                    <div class="product-price">₱${parseFloat(product.price).toFixed(2)}</div>
+                    <div style="color: #64748b; font-size: 0.95rem; margin-top: 0.5rem;">Seller: ${purchase.seller}</div>
+                    ${purchase.buyerGcash ? `
+                        <div class="gcash-info">
+                            <strong>Your GCash:</strong> ${purchase.buyerGcash}<br>
+                            <small style="color: #64748b;">Payment sent</small>
+                        </div>
+                    ` : ''}
+                    ${purchase.proofImage ? `
+                        <div>
+                            <small style="color: #64748b; font-weight: 600;">Payment Proof:</small><br>
+                            <img src="${purchase.proofImage}" class="proof-image" onclick="openImageModal('${purchase.proofImage}')" title="Click to enlarge">
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+
+            <div class="purchase-actions">
+                ${purchase.status === 'pending' || purchase.status === 'rejected' ? `
+                    <div class="gcash-info">
+                        <strong>${purchase.status === 'rejected' ? 'Order Rejected' : 'Waiting for seller approval'}</strong><br>
+                        <small>${purchase.status === 'rejected' ? 'Contact seller for resolution' : 'Check back later'}</small>
+                    </div>
+                    <button class="btn-download" disabled>
+                        <i class="fas fa-clock"></i> ${purchase.status === 'rejected' ? 'Rejected' : 'Pending'}
+                    </button>
+                ` : `
+                    <button class="btn-download" onclick="downloadProduct('${purchase.id}', '${purchase.productId}')">
+                        <i class="fas fa-download"></i> Download Product
+                    </button>
+                `}
+            </div>
+        `;
+                container.appendChild(row);
+            });
+        }
+        
+        function downloadProduct(orderId, productId) {
+    // REDIRECT TO KEYS PAGE INSTEAD OF SHOWING MODAL
+    localStorage.setItem('selectedOrderId', orderId);
+    localStorage.setItem('selectedProductId', productId);
+    window.location.href = 'file-for-buyers.html';
+}
+
+function showKeyModal(productId, orderId) {
+    // DEPRECATED - No longer used
+    showNotification('Please go to "Your Keys" page to get your download key!', 'info');
+}
+
+// NEW: Get keys from approved orders (for file-for-buyers.html)
+async function getUserKeysForProduct(productId) {
+    const productRef = db.ref(`shop/products/${productId}`);
+    const snapshot = await productRef.once('value');
+    const product = snapshot.val();
+    
+    if (!product || !product.keys) return [];
+    
+    // Return only keys assigned to current user
+    return product.keys.filter(key =>
+        key.usedBy === currentUser ||
+        (!key.used && !key.blocked)
+    );
+}
+
+// NEW: Validate key manually (for file-for-buyers.html if needed)
+async function validateKeyManually(keyInput, productId, orderId) {
+    const keyUpper = keyInput.trim().toUpperCase();
+    if (!keyUpper) {
+        showNotification('Please enter a key!', 'error');
+        return false;
+    }
+    
+    const productRef = db.ref(`shop/products/${productId}`);
+    const snapshot = await productRef.once('value');
+    const product = snapshot.val();
+    
+    if (!product || !product.keys) {
+        showNotification('Product not found!', 'error');
+        return false;
+    }
+    
+    // Find exact key match
+    const keyObj = product.keys.find(k =>
+        k.key.toUpperCase() === keyUpper &&
+        !k.used &&
+        !k.blocked
+    );
+    
+    if (!keyObj) {
+        showNotification('❌ Invalid, used, or blocked key! Check your keys page.', 'error');
+        return false;
+    }
+    
+    showLoading(true, 'Validating key and preparing download...');
+    
+    try {
+        // Mark key as used
+        const keyIndex = product.keys.indexOf(keyObj);
+        await db.ref(`shop/products/${productId}/keys/${keyIndex}`).update({
+            used: true,
+            usedBy: currentUser,
+            usedAt: Date.now()
+        });
+        
+        // Update order status
+        await db.ref(`shop/orders/${orderId}`).update({
+            status: 'download',
+            downloadTime: Date.now(),
+            usedKey: keyInput
+        });
+        
+        showLoading(false);
+        showNotification('✅ Key validated successfully! Download started...', 'success');
+        
+        // Auto download APK
+        window.open(product.hostingUrl, '_blank');
+        
+        return true;
+    } catch (error) {
+        showLoading(false);
+        showNotification('❌ Validation failed: ' + error.message, 'error');
+        return false;
+    }
+}
+
+// REMOVE copyRandomKey - No longer needed (manual system)
+// REMOVE validateKeyAndDownload - Replaced by validateKeyManually
+
+// Update purchase card rendering to show keys link
+function renderPurchases() {
+    const container = document.getElementById('purchasesContainer');
+    const purchaseArray = Object.entries(userPurchases).map(([id, purchase]) => ({ id, ...purchase }));
+    
+    container.innerHTML = '';
+    
+    if (purchaseArray.length === 0) {
+        // Empty state (same as before)
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 6rem 2rem; color: #64748b;">
+                <i class="fas fa-shopping-cart" style="font-size: 5rem; margin-bottom: 2rem; opacity: 0.5;"></i>
+                <h3 style="color: #94a3b8; font-size: 2rem; margin-bottom: 1rem;">No purchases yet</h3>
+                <p style="font-size: 1.2rem; margin-bottom: 2rem;">Buy products from the shop to see them here</p>
+                <a href="shop.html" style="
+                    background: linear-gradient(135deg, #10b981, #059669); 
+                    color: white; padding: 1.5rem 3rem; border-radius: 16px; 
+                    text-decoration: none; font-weight: 700; display: inline-block; 
+                    margin-top: 1rem; box-shadow: 0 15px 35px rgba(16,185,129,0.4);
+                    transition: all 0.3s;
+                " onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    Go to Shop
+                </a>
+            </div>
+        `;
+        return;
+    }
+    
+    purchaseArray.sort((a, b) => b.timestamp - a.timestamp).forEach((purchase, index) => {
+        const product = products[purchase.productId];
+        if (!product) return;
+        
+        const row = document.createElement('div');
+        row.className = 'purchase-card';
+        row.style.animationDelay = `${index * 0.1}s`;
+        row.style.animation = 'fadeInUp 0.6s ease-out forwards';
+        
+        const statusClass = purchase.status === 'approved' || purchase.status === 'download' || purchase.status === 'completed' ? 'completed' : 'pending';
+        const statusText = purchase.status === 'download' ? 'Downloaded' :
+            (purchase.status === 'approved' || purchase.status === 'completed') ? '✅ Approved - Get Key' :
+            purchase.status === 'rejected' ? '❌ Rejected' : '⏳ Pending';
+        
+        row.innerHTML = `
+            <div class="purchase-header">
+                <div>
+                    <h3 style="margin: 0 0 0.75rem 0; color: #1e293b;">${product.name}</h3>
+                    <div style="color: #64748b; font-size: 0.95rem;">${new Date(purchase.timestamp).toLocaleString()}</div>
+                </div>
+                <div class="purchase-status status-${statusClass}">
+                    ${statusText}
+                </div>
+            </div>
+
+            <div class="product-info">
+                <img src="${product.thumbnail || 'https://via.placeholder.com/90x90/1e293b/94a3b8?text=No+Image'}" 
+                     alt="${product.name}" class="product-thumbnail">
+                <div style="flex: 1;">
+                    <h3 style="color: #1e293b; margin-bottom: 0.5rem;">${product.name}</h3>
+                    <div class="product-price">₱${parseFloat(product.price).toFixed(2)}</div>
+                    <div style="color: #64748b; font-size: 0.95rem; margin-top: 0.5rem;">Seller: ${purchase.seller}</div>
+                    
+                    ${purchase.buyerGcash ? `
+                        <div class="gcash-info" style="margin-top: 1rem;">
+                            <strong>Your GCash:</strong> ${purchase.buyerGcash}<br>
+                            <small style="color: #64748b;">Payment sent</small>
+                        </div>
+                    ` : ''}
+                    
+                    ${purchase.proofImage ? `
+                        <div style="margin-top: 1rem;">
+                            <small style="color: #64748b; font-weight: 600;">Payment Proof:</small><br>
+                            <img src="${purchase.proofImage}" class="proof-image" onclick="openImageModal('${purchase.proofImage}')" title="Click to enlarge">
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+
+            <div class="purchase-actions">
+                ${purchase.status === 'pending' || purchase.status === 'rejected' ? `
+                    <div class="gcash-info">
+                        <strong>${purchase.status === 'rejected' ? '❌ Order Rejected' : '⏳ Waiting for seller approval'}</strong><br>
+                        <small>${purchase.status === 'rejected' ? 'Contact seller for resolution' : 'Seller will approve soon'}</small>
+                    </div>
+                    <button class="btn-download" disabled style="opacity: 0.6;">
+                        <i class="fas ${purchase.status === 'rejected' ? 'fa-times' : 'fa-clock'}"></i> 
+                        ${purchase.status === 'rejected' ? 'Rejected' : 'Pending Approval'}
+                    </button>
+                ` : `
+                    <!-- ✅ NEW: Direct link to KEYS PAGE -->
+                    <a href="file-for-buyers.html#${purchase.productId}" class="btn-download" style="
+                        display: block; text-decoration: none; text-align: center; line-height: 1.4;
+                        background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+                    ">
+                        <i class="fas fa-key"></i> Get Your Download Key
+                    </a>
+                    <div style="text-align: center; margin-top: 1rem; color: #64748b; font-size: 0.9rem;">
+                        <i class="fas fa-info-circle"></i> Click to copy key & download APK
+                    </div>
+                `}
+            </div>
+        `;
+        container.appendChild(row);
+    });
+}
+        function updatePurchaseCount() {
+            const count = Object.keys(userPurchases).length;
+            const countEl = document.getElementById('purchaseCount');
+            if (countEl) {
+                countEl.style.transform = 'scale(1.2)';
+                countEl.textContent = count;
+                setTimeout(() => countEl.style.transform = 'scale(1)', 200);
+            }
+        }
+        
+        function showPurchases() {
+            document.querySelector('.sidebar-item').classList.add('active');
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+        
+        function openImageModal(imageSrc) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.95); z-index: 10000; display: flex; 
+                align-items: center; justify-content: center; cursor: pointer;
+            `;
+            modal.innerHTML = `
+                <img src="${imageSrc}" style="max-width: 90%; max-height: 90%; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+                <button onclick="this.parentElement.remove(); event.stopPropagation();" style="
+                    position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.2); 
+                    border: none; color: white; font-size: 2.5rem; cursor: pointer; z-index: 1;
+                    width: 50px; height: 50px; border-radius: 50%; backdrop-filter: blur(10px);
+                    transition: all 0.3s;
+                " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">×</button>
+            `;
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+            document.body.appendChild(modal);
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => notif.classList.add('show'), 100);
+            setTimeout(() => {
+                notif.classList.remove('show');
+                setTimeout(() => notif.remove(), 500);
+            }, 4500);
+        }
+        
+        function initParticles() {
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', {
+                    particles: {
+                        number: { value: 80 },
+                        color: { value: ['#10b981', '#34d399', '#059669'] },
+                        shape: { type: 'circle' },
+                        opacity: { value: 0.4, random: true },
+                        size: { value: 4, random: true },
+                        line_linked: {
+                            enable: true,
+                            distance: 150,
+                            color: '#10b981',
+                            opacity: 0.2,
+                            width: 1
+                        },
+                        move: {
+                            enable: true,
+                            speed: 2,
+                            direction: 'none',
+                            random: false,
+                            straight: false,
+                            out_mode: 'out',
+                            bounce: false
+                        }
+                    },
+                    interactivity: {
+                        detect_on: 'canvas',
+                        events: {
+                            onhover: { enable: true, mode: 'repulse' },
+                            onclick: { enable: true, mode: 'push' },
+                            resize: true
+                        },
+                        modes: {
+                            repulse: { distance: 100, duration: 0.4 },
+                            push: { particles_nb: 4 }
+                        }
+                    },
+                    retina_detect: true
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

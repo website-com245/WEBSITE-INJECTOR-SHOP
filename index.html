@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Injector Hub -  APK Uploader</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Particles Background -->
+    <div id="particles-js"></div>
+    
+    <!-- Sidebar Overlay -->
+    <div id="overlay" class="overlay"></div>
+    
+    <!-- Sidebar Menu -->
+   <!-- Updated Sidebar -->
+<div id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">
+            <i class="fas fa-rocket"></i>
+            <span>Injector Hub</span>
+        </div>
+        <button class="sidebar-close" onclick="closeSidebar()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <div class="sidebar-item" onclick="goTab('home')">
+            <i class="fas fa-home"></i> <span>Home</span>
+        </div>
+        <div class="sidebar-item" onclick="goTab('upload')">
+            <i class="fas fa-cloud-upload-alt"></i> <span>Upload</span>
+        </div>
+        <div class="sidebar-item" onclick="goTab('shop')">
+            <i class="fas fa-store"></i> <span>Shop</span>
+        </div>
+        <div class="sidebar-item" onclick="goTab('my')">
+            <i class="fas fa-download"></i> <span>My Downloads</span>
+        </div>
+        <div class="sidebar-item" onclick="goTab('profile')">
+            <i class="fas fa-user"></i> <span>Profile</span>
+        </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <div class="user-status" id="sidebarUserStatus">
+            <i class="fas fa-circle online-dot"></i>
+            <span>Online</span>
+        </div>
+    </div>
+</div>
+    <!-- Notifications -->
+    <div id="notification" class="notification"></div>
+    <div id="notif" class="notif-container"></div>
+
+    <!-- Login Screen -->
+    <div id="login" class="login-screen">
+        <div class="login-container">
+            <div class="login-left">
+                <div class="login-brand">
+                    <i class="fas fa-rocket brand-icon"></i>
+                    <h1>Injector Hub</h1>
+                    <p>Premium APK Sharing Platform</p>
+                </div>
+            </div>
+            <div class="login-right">
+                <div class="login-form">
+                    <h2>Welcome Back</h2>
+                    <div class="input-group">
+                        <i class="fas fa-user input-icon"></i>
+                        <input id="user" type="text" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input id="password" type="password" placeholder="Password" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input id="email" type="email" placeholder="Email (optional)">
+                    </div>
+                    <div class="input-group">
+                        <i class="fab fa-telegram input-icon"></i>
+                        <input id="telegram" type="text" placeholder="Telegram (optional)">
+                    </div>
+                    <div class="captcha-container">
+                        <div id="captcha" class="captcha"></div>
+                        <input id="capInput" type="text" placeholder="Enter CAPTCHA" maxlength="5">
+                    </div>
+                    <button class="btn-primary btn-full" onclick="login()">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding -->
+    <div id="onboard" class="onboard-screen">
+        <!-- Phone Verification -->
+        <div id="phoneScreen" class="step active">
+            <div class="onboard-card">
+                <div class="step-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h2>Verify Your Number</h2>
+                <p>Enter your phone number for account security</p>
+                <div class="input-group">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input id="phoneNumber" type="tel" placeholder="09XXXXXXXXX">
+                </div>
+                <button id="phoneBtn" class="btn-primary" onclick="saveNumber()" disabled>
+                    <i class="fas fa-arrow-right"></i> Continue
+                </button>
+            </div>
+        </div>
+
+        <!-- Rules -->
+        <div id="rulesScreen" class="step">
+            <div class="onboard-card">
+                <div class="step-icon success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2>Platform Rules</h2>
+                <div class="rules-list">
+                    <div class="rule-item">
+                        <i class="fas fa-ban"></i>
+                        <span>No spam uploads</span>
+                    </div>
+                    <div class="rule-item">
+                        <i class="fas fa-users"></i>
+                        <span>Respect other users</span>
+                    </div>
+                    <div class="rule-item">
+                        <i class="fas fa-bug"></i>
+                        <span>No harmful APKs</span>
+                    </div>
+                </div>
+                <button class="btn-primary btn-full" onclick="enterApp()">
+                    <i class="fas fa-check"></i> I Agree & Enter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <button class="hamburger" onclick="openSidebar()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="header-content">
+                <h1 class="header-title">
+                    <i class="fas fa-rocket"></i>
+                    Injector Hub
+                </h1>
+                <div class="header-stats">
+                    <span class="stat-item">
+                        <i class="fas fa-fire"></i>
+                        <span id="globalDownloads">0</span>
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Tabs -->
+        <div class="main-tabs">
+    <button class="tab-btn active" onclick="showTab('home')">
+        <i class="fas fa-home"></i> Home
+    </button>
+    <button class="tab-btn" onclick="showTab('upload')">
+        <i class="fas fa-cloud-upload-alt"></i> Upload
+    </button>
+    <button class="tab-btn" onclick="showTab('shop')">
+        <i class="fas fa-store"></i> Shop
+    </button>
+    <button class="tab-btn" onclick="showTab('profile')">
+        <i class="fas fa-user"></i> Profile
+    </button>
+
+            <button class="tab-btn" onclick="showTab('messenger')">
+                <i class="fas fa-comments"></i> Messages
+            </button>
+        </div>
+
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input class="search-input" id="search" placeholder="Search injectors..." oninput="safeRender()">
+            </div>
+            
+            <div class="home-tabs">
+                <button class="home-tab-btn active" onclick="switchHomeTab('latest')">
+                    <i class="fas fa-clock"></i> Latest
+                </button>
+                <button class="home-tab-btn" onclick="switchHomeTab('top')">
+                    <i class="fas fa-crown"></i> Top
+                </button>
+                <button class="home-tab-btn" onclick="switchHomeTab('my')">
+                    <i class="fas fa-user"></i> My Uploads
+                </button>
+            </div>
+
+            <div id="latest" class="home-section active"></div>
+            <div id="top" class="home-section"></div>
+            <div id="my" class="home-section"></div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="upload" class="tab-content">
+            <div class="upload-container">
+                <div class="upload-card">
+                    <div class="upload-header">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h2>Upload Injector</h2>
+                        <p>Share your premium injectors with community</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> App Name</label>
+                        <input id="name" type="text" placeholder="Enter injector name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-align-left"></i> Description</label>
+                        <textarea id="desc" rows="3" placeholder="Describe your injector..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-link"></i> Download Link</label>
+                        <input id="apk" type="url" placeholder="MediaFire, GoFile, etc...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fab fa-telegram"></i> Telegram (Optional)</label>
+                        <input id="telegramUpload" type="url" placeholder="t.me/username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-image"></i> App Icon</label>
+                        <input type="file" id="iconFile" accept="image/*" onchange="showPreview(event)">
+                        <img id="previewIcon" class="preview-icon">
+                    </div>
+                    
+                    <button class="btn-primary btn-full upload-btn" onclick="upload()">
+                        <i class="fas fa-rocket"></i> Launch Injector
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Tab -->
+        <div id="profile" class="tab-content">
+            <div class="profile-header">
+                <div class="cover-container">
+                    <img id="coverPhoto" class="cover-photo" src="https://via.placeholder.com/1200x300/1e3a8a/ffffff?text=COVER">
+                    <input type="file" id="coverFile" accept="image/*" onchange="updateCover()" style="display:none;">
+                    <button class="cover-edit" onclick="document.getElementById('coverFile').click()">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                
+                <div class="profile-avatar-container">
+                    <img id="profilePic" class="profile-avatar" src="https://via.placeholder.com/140/6366f1/ffffff?text=USER">
+                    <input type="file" id="profilePicFile" accept="image/*" onchange="updateProfilePic()" style="display:none;">
+                    <button class="avatar-edit" onclick="document.getElementById('profilePicFile').click()">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                
+                <div class="profile-info">
+                    <h2 id="profileName">Loading...</h2>
+                    <div class="profile-details">
+                        <div class="detail-item">
+                            <i class="fas fa-envelope"></i>
+                            <span id="profileEmail">No email</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fab fa-telegram"></i>
+                            <span id="profileTelegram">No telegram</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-phone"></i>
+                            <span id="profilePhone">No phone</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="profile-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="profileLikes">0</div>
+                    <div class="stat-label">Likes</div>
+                    <i class="fas fa-heart stat-icon"></i>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="profileComments">0</div>
+                    <div class="stat-label">Comments</div>
+                    <i class="fas fa-comment stat-icon"></i>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="profileDownloads">0</div>
+                    <div class="stat-label">Downloads</div>
+                    <i class="fas fa-download stat-icon"></i>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <button class="btn-secondary" onclick="changeUsername()">
+                    <i class="fas fa-edit"></i> Edit Username
+                </button>
+                <button class="btn-secondary" onclick="changePassword()">
+                    <i class="fas fa-key"></i> Change Password
+                </button>
+                <button class="btn-danger" onclick="openQR()">
+                    <i class="fas fa-qrcode"></i> QR Code
+                </button>
+                <button class="btn-danger" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Messenger Tab -->
+        <div id="messenger" class="tab-content">
+            <div class="messenger-header">
+                <h2><i class="fas fa-comments"></i> Messages</h2>
+                <div class="friend-search">
+                    <i class="fas fa-search"></i>
+                    <input id="friendSearchInput" placeholder="Find friends...">
+                    <button onclick="addFriend()">
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="friend-list">
+                <h3><i class="fas fa-user-friends"></i> Friends</h3>
+                <div id="friendList"></div>
+            </div>
+        </div>
+    </div>
+<!-- SHOP TAB -->
+<div id="shop" class="tab-content">
+    <div class="shop-header">
+        <h2><i class="fas fa-store"></i> Premium Shop</h2>
+        <div class="shop-tabs">
+            <button class="shop-tab-btn active" onclick="switchShopTab('featured')">
+                <i class="fas fa-star"></i> Featured
+            </button>
+            <button class="shop-tab-btn" onclick="switchShopTab('popular')">
+                <i class="fas fa-fire"></i> Most Bought
+            </button>
+            <button class="shop-tab-btn" onclick="switchShopTab('new')">
+                <i class="fas fa-plus"></i> New
+            </button>
+        </div>
+    </div>
+    
+    <div id="featured" class="shop-section active"></div>
+    <div id="popular" class="shop-section"></div>
+    <div id="new" class="shop-section"></div>
+</div>
+    <!-- Loading Overlay -->
+    <div id="uploadLoading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Uploading your injector...</p>
+    </div>
+
+    <!-- Modals -->
+    <!-- QR Modal -->
+    <div id="qrModal" class="modal-overlay">
+        <div class="qr-modal">
+            <img id="qrProfilePic" class="qr-avatar">
+            <div class="qr-header">
+                <h2 id="qrUsername"></h2>
+                <p>Scan to view profile</p>
+            </div>
+            <div class="qr-container">
+                <canvas id="qrCanvasLarge"></canvas>
+            </div>
+            <button class="btn-primary qr-close" onclick="closeQR()">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="commentModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-comments"></i> Comments</h3>
+                <button class="modal-close" onclick="closeCommentModal()">×</button>
+            </div>
+            <div id="commentList" class="comment-list"></div>
+            <div class="comment-input-group">
+                <input id="newComment" placeholder="Write a comment...">
+                <button onclick="postComment()">Post</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-flag"></i> Report Content</h3>
+                <button class="modal-close" onclick="closeReportModal()">×</button>
+            </div>
+            <select id="reportReason">
+                <option value="spam">Spam</option>
+                <option value="fake">Fake APK</option>
+                <option value="virus">Virus</option>
+                <option value="broken">Broken Link</option>
+            </select>
+            <textarea id="reportText" placeholder="Additional details..."></textarea>
+            <div class="modal-actions">
+                <button class="btn-danger" onclick="submitReport()">Submit Report</button>
+                <button class="btn-secondary" onclick="closeReportModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chatModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Chat with <span id="chatWith"></span></h3>
+                <button class="modal-close" onclick="closeChatModal()">×</button>
+            </div>
+            <div id="chatMessages" class="chat-messages"></div>
+            <div class="chat-input-group">
+                <input id="chatInput" placeholder="Type a message...">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+    
+</body>
+</html>

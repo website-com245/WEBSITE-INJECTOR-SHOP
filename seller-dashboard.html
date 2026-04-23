@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard - Injector Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Use the same styles from admin-dashboard.html but change colors and text */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); 
+            color: white; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+            position: relative;
+        }
+        
+        #particles-js { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        
+        .loading-screen, .spinner, @keyframes spin { /* Same as admin-dashboard */ }
+        .loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.5s ease-out;
+        }
+        .loading-screen.fade-out { opacity: 0; pointer-events: none; }
+        .spinner {
+            width: 60px; height: 60px; border: 4px solid rgba(59,130,246,0.2);
+            border-top: 4px solid #3b82f6; border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Sidebar - ORANGE theme for sellers */
+        .sidebar { 
+            position: fixed; left: 0; top: 0; width: 280px; height: 100vh; 
+            background: linear-gradient(180deg, rgba(30,41,59,0.95) 0%, #0f172a 100%); 
+            backdrop-filter: blur(20px); padding: 2rem 0; z-index: 1000; 
+            box-shadow: 2px 0 40px rgba(0,0,0,0.4); overflow-y: auto;
+            transform: translateX(0); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar-header { padding: 0 2rem 2rem; border-bottom: 1px solid rgba(51,65,85,0.5); margin-bottom: 2rem; }
+        .sidebar-item { padding: 1.2rem 2rem; color: #94a3b8; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 1rem; }
+        .sidebar-item:hover, .sidebar-item.active { background: rgba(59,130,246,0.15); color: #3b82f6; transform: translateX(8px); }
+        .order-count { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+        
+        .main-content { margin-left: 280px; padding: 2.5rem; min-height: 100vh; }
+        .mobile-menu-btn { position: fixed; top: 25px; left: 25px; z-index: 1001; background: linear-gradient(135deg, rgba(59,130,246,0.9), rgba(37,99,235,0.9)); color: white; border: none; width: 60px; height: 60px; border-radius: 16px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 8px 25px rgba(59,130,246,0.4); }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1.5rem; }
+            .mobile-menu-btn { display: block; }
+        }
+        
+        .orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2.5rem; margin-top: 3rem; }
+        .order-card { background: rgba(255,255,255,0.95); border-radius: 24px; padding: 2.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.1); transition: all 0.4s; border: 1px solid rgba(226,232,240,0.5); color: #1e293b; }
+        .order-card:hover { transform: translateY(-12px) scale(1.02); box-shadow: 0 40px 80px rgba(0,0,0,0.2); }
+        
+        .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+        .order-status { padding: 0.75rem 1.5rem; border-radius: 50px; font-size: 0.875rem; font-weight: 700; }
+        .status-pending { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
+        .status-approved { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #059669; }
+        .status-downloaded { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #2563eb; }
+        
+        .product-info { display: flex; gap: 1.5rem; margin-bottom: 2rem; }
+        .product-thumbnail { width: 90px; height: 90px; border-radius: 16px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        .buyer-info { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); padding: 1.5rem; border-radius: 16px; border-left: 5px solid #3b82f6; margin-bottom: 1.5rem; }
+        .proof-image { max-width: 100%; border-radius: 16px; margin-top: 1rem; cursor: pointer; max-height: 140px; }
+        
+        .order-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .btn-approve, .btn-view { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 1rem 2rem; border-radius: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 30px rgba(16,185,129,0.4); }
+        .btn-view { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 10px 30px rgba(59,130,246,0.4); }
+        .btn-approve:hover, .btn-view:hover { transform: translateY(-3px); }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(51,65,85,0.5); }
+        .notification { position: fixed; top: 30px; right: 30px; padding: 1.5rem 2.5rem; border-radius: 20px; z-index: 10001; font-weight: 600; transform: translateX(400px); opacity: 0; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .notification.success { background: linear-gradient(135deg, #10b981, #34d399); }
+        .notification.show { transform: translateX(0); opacity: 1; animation: bounceIn 0.5s; }
+        /* Seller Dashboard Buttons */
+.order-actions {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+}
+
+.btn-approve, .btn-view {
+    background: linear-gradient(135deg, #10b981, #059669); 
+    color: white; border: none; padding: 1rem 2rem; 
+    border-radius: 16px; font-weight: 700; cursor: pointer; 
+    transition: all 0.3s; box-shadow: 0 10px 30px rgba(16,185,129,0.4);
+    flex: 1; min-width: 120px;
+}
+
+.btn-reject {
+    background: linear-gradient(135deg, #ef4444, #f87171); 
+    color: white; border: none; padding: 1rem 2rem; 
+    border-radius: 16px; font-weight: 700; cursor: pointer; 
+    transition: all 0.3s; box-shadow: 0 10px 30px rgba(239,68,68,0.4);
+    flex: 1; min-width: 120px;
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #6b7280, #4b5563); 
+    color: white; border: none; padding: 1rem 2rem; 
+    border-radius: 16px; font-weight: 700; cursor: pointer; 
+    transition: all 0.3s; box-shadow: 0 10px 30px rgba(107,114,128,0.4);
+    flex: 1; min-width: 120px;
+}
+
+.btn-approve:hover, .btn-view:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 15px 35px rgba(16,185,129,0.5); 
+}
+
+.btn-reject:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 15px 35px rgba(239,68,68,0.5); 
+}
+
+.btn-delete:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 15px 35px rgba(107,114,128,0.5); 
+}
+
+/* Status Colors */
+.status-approved { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #059669; }
+.status-download { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #2563eb; }
+.status-rejected { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <p style="margin-top: 2rem; font-size: 1.1rem; color: #94a3b8;">Loading your orders...</p>
+    </div>
+
+    <div id="particles-js"></div>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()" title="Menu"><i class="fas fa-bars"></i></button>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2 style="margin: 0; font-size: 1.5rem;"><i class="fas fa-store"></i> Seller Dashboard</h2>
+            <p style="color: #94a3b8; font-size: 0.9rem; margin: 0.75rem 0 0 0;">Manage your product orders</p>
+        </div>
+        <div class="sidebar-item active" onclick="loadSellerOrders()">
+            <i class="fas fa-list"></i>
+            <span>Your Orders <span class="order-count" id="orderCount">0</span></span>
+        </div>
+        <div class="sidebar-item" onclick="window.location.href='seller-approve.html'">
+    <i class="fas fa-check-circle"></i>
+    Approve Orders <span class="order-count" id="pendingCount">0</span>
+</div>
+<div class="sidebar-item" onclick="window.location.href='key-list.html'">
+    <i class="fas fa-key"></i> Key Manager
+</div>
+        <a href="shop.html" class="sidebar-item"><i class="fas fa-shopping-cart"></i> <span>Shop</span></a>
+        <a href="index.html" class="sidebar-item"><i class="fas fa-home"></i> <span>Home</span></a>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 style="margin: 0; font-size: 3rem; display: flex; align-items: center; gap: 1.5rem;">
+                    <i class="fas fa-list-alt"></i> Your Orders
+                </h1>
+                <p style="color: #94a3b8; margin: 0.75rem 0 0 0; font-size: 1.1rem;">
+                    Approve buyer requests for your products
+                </p>
+            </div>
+        </div>
+
+        <div id="ordersContainer" class="orders-grid">
+            <!-- Orders will be loaded here -->
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="firebase-config.js"></script>
+<script>
+        let currentUser = localStorage.getItem('apkUser') || 'guest';
+        let sellerOrders = {};
+        let products = {};
+        let viewingProductId = localStorage.getItem('viewingProductId') || null;
+        
+        window.onload = function() {
+            setTimeout(() => document.getElementById('loadingScreen').classList.add('fade-out'), 1500);
+            initParticles();
+            loadSellerData();
+        };
+        
+        function loadSellerData() {
+            db.ref('shop/products').on('value', snapshot => {
+                products = snapshot.val() || {};
+                loadSellerOrders();
+            });
+            loadSellerOrders();
+        }
+        
+        function loadSellerOrders() {
+            db.ref('shop/orders')
+                .orderByChild('seller')
+                .equalTo(currentUser)
+                .on('value', snapshot => {
+                    sellerOrders = snapshot.val() || {};
+                    renderSellerOrders();
+                    updateOrderCount();
+                });
+        }
+        
+        function renderSellerOrders() {
+            const container = document.getElementById('ordersContainer');
+            const orderArray = Object.entries(sellerOrders).map(([id, order]) => ({ id, ...order }));
+            
+            let filteredOrders = orderArray;
+            if (viewingProductId && products[viewingProductId]) {
+                filteredOrders = orderArray.filter(order => order.productId === viewingProductId);
+                localStorage.removeItem('viewingProductId');
+            }
+            
+            container.innerHTML = '';
+            
+            if (filteredOrders.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 6rem 2rem; color: #64748b;">
+                        <i class="fas fa-list" style="font-size: 5rem; margin-bottom: 2rem; opacity: 0.5;"></i>
+                        <h3 style="color: #94a3b8; font-size: 2rem; margin-bottom: 1rem;">No orders yet</h3>
+                        <p style="font-size: 1.2rem; margin-bottom: 2rem;">Upload products to shop to receive orders</p>
+                        <a href="shop.html#uploadProductModal" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 1.5rem 3rem; border-radius: 16px; text-decoration: none; font-weight: 700; display: inline-block; box-shadow: 0 15px 35px rgba(59,130,246,0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                            <i class="fas fa-plus"></i> Upload Product
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            filteredOrders.sort((a, b) => b.timestamp - a.timestamp).forEach((order, index) => {
+                const product = products[order.productId];
+                if (!product) return;
+                
+                const row = document.createElement('div');
+                row.className = 'order-card';
+                row.style.animationDelay = `${index * 0.1}s`;
+                
+                let statusText = 'Pending';
+                let statusClass = 'pending';
+                if (order.status === 'approved') {
+                    statusText = 'Approved';
+                    statusClass = 'approved';
+                } else if (order.status === 'download' || order.status === 'completed') {
+                    statusText = 'Download Ready';
+                    statusClass = 'download';
+                } else if (order.status === 'rejected') {
+                    statusText = 'Rejected';
+                    statusClass = 'rejected';
+                }
+                
+                row.innerHTML = `
+                    <div class="order-header">
+                        <div>
+                            <h3 style="margin: 0 0 0.75rem 0; color: #1e293b;">${product.name}</h3>
+                            <div style="color: #64748b; font-size: 0.95rem;">${new Date(order.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div class="order-status status-${statusClass}">
+                            ${statusText}
+                        </div>
+                    </div>
+
+                    <div class="product-info">
+                        <img src="${product.thumbnail || 'https://via.placeholder.com/90x90/1e293b/94a3b8?text=No+Image'}" 
+                             alt="${product.name}" class="product-thumbnail">
+                        <div style="flex: 1;">
+                            <div class="product-price" style="font-size: 1.5rem; font-weight: 800; color: #10b981;">
+                                ₱${parseFloat(product.price).toFixed(2)}
+                            </div>
+                            <div class="buyer-info">
+                                <strong>Buyer:</strong> ${order.buyer}<br>
+                                <strong>GCash:</strong> ${order.buyerGcash || 'Not provided'}
+                            </div>
+                            ${order.proofImage ? `
+                                <div style="margin-top: 1rem;">
+                                    <small style="color: #64748b; font-weight: 600;">Payment Proof:</small><br>
+                                    <img src="${order.proofImage}" class="proof-image" onclick="openImageModal('${order.proofImage}')" title="Click to enlarge">
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <div class="order-actions">
+                        ${order.status === 'pending' ? `
+                            <button class="btn-approve" onclick="approveOrder('${order.id}')">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="btn-reject" onclick="rejectOrder('${order.id}')">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        ` : order.status === 'rejected' ? `
+                            <button class="btn-delete" onclick="deleteOrder('${order.id}')">
+                                <i class="fas fa-trash"></i> Delete History
+                            </button>
+                        ` : `
+                            <button class="btn-view" onclick="viewBuyerDetails('${order.buyer}', '${order.id}', '${product.name}')">
+                                <i class="fas fa-eye"></i> View Buyer
+                            </button>
+                            <button class="btn-delete" onclick="deleteOrder('${order.id}')">
+                                <i class="fas fa-trash"></i> Delete History
+                            </button>
+                        `}
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+        
+        // ✅ APPROVE ORDER
+        function approveOrder(orderId) {
+            if (confirm('Approve this order? Buyer can now download.')) {
+                db.ref(`shop/orders/${orderId}`).update({
+                    status: 'approved',
+                    approvedBy: currentUser,
+                    approvedAt: Date.now()
+                }).then(() => {
+                    showNotification('✅ Order approved! Buyer can now download.', 'success');
+                }).catch(error => {
+                    showNotification('❌ Error: ' + error.message, 'error');
+                });
+            }
+        }
+        
+        // ✅ REJECT ORDER
+        function rejectOrder(orderId) {
+            if (confirm('Reject this order?')) {
+                db.ref(`shop/orders/${orderId}`).update({
+                    status: 'rejected',
+                    rejectedBy: currentUser,
+                    rejectedAt: Date.now()
+                }).then(() => {
+                    showNotification('❌ Order rejected!', 'error');
+                }).catch(error => {
+                    showNotification('❌ Error: ' + error.message, 'error');
+                });
+            }
+        }
+        
+        // ✅ DELETE ORDER HISTORY
+        function deleteOrder(orderId) {
+            if (confirm('Delete this order from history? This cannot be undone.')) {
+                db.ref(`shop/orders/${orderId}`).remove().then(() => {
+                    showNotification('🗑️ Order deleted from history!', 'success');
+                }).catch(error => {
+                    showNotification('❌ Error deleting order: ' + error.message, 'error');
+                });
+            }
+        }
+        
+        // ✅ VIEW BUYER DETAILS
+        function viewBuyerDetails(buyer, orderId, productName) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.9); z-index: 10000; display: flex; 
+                align-items: center; justify-content: center; padding: 2rem;
+            `;
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 24px; padding: 2.5rem; max-width: 500px; max-height: 80vh; overflow-y: auto; color: #1e293b; box-shadow: 0 25px 50px rgba(0,0,0,0.5);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2 style="margin: 0; color: #1e293b;"><i class="fas fa-user"></i> Buyer Details</h2>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove(); event.stopPropagation();" style="background: #ef4444; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem;">×</button>
+                    </div>
+                    <div style="background: #f8fafc; padding: 1.5rem; border-radius: 16px; border-left: 4px solid #3b82f6;">
+                        <p><strong>Product:</strong> ${productName}</p>
+                        <p><strong>Buyer:</strong> ${buyer}</p>
+                        <p><strong>Order ID:</strong> ${orderId}</p>
+                        <p><strong>Status:</strong> <span style="color: #059669; font-weight: 700;">Approved</span></p>
+                        <p><strong>Action:</strong> Send download link via chat/email</p>
+                    </div>
+                    <div style="margin-top: 2rem; text-align: center;">
+                        <button onclick="copyBuyerInfo('${buyer}', '${productName}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; cursor: pointer; margin-right: 1rem;">
+                            <i class="fas fa-copy"></i> Copy Info
+                        </button>
+                        <button onclick="this.parentElement.parentElement.remove()" style="background: linear-gradient(135deg, #6b7280, #4b5563); color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function copyBuyerInfo(buyer, productName) {
+            navigator.clipboard.writeText(`Product: ${productName}\nBuyer: ${buyer}\nSend download link now!`);
+            showNotification('📋 Buyer info copied to clipboard!', 'success');
+        }
+        
+        // Rest of your existing functions (updateOrderCount, toggleSidebar, etc.)
+        function updateOrderCount() {
+            const count = Object.keys(sellerOrders).length;
+            const countEl = document.getElementById('orderCount');
+            if (countEl) {
+                countEl.style.transform = 'scale(1.2)';
+                countEl.textContent = count;
+                setTimeout(() => countEl.style.transform = 'scale(1)', 200);
+            }
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+        
+        function openImageModal(imageSrc) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.95); z-index: 10001; display: flex; 
+                align-items: center; justify-content: center; cursor: pointer;
+            `;
+            modal.innerHTML = `
+                <img src="${imageSrc}" style="max-width: 90%; max-height: 90%; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+                <button onclick="this.parentElement.remove(); event.stopPropagation();" style="
+                    position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.2); 
+                    border: none; color: white; font-size: 2.5rem; cursor: pointer; z-index: 1;
+                    width: 50px; height: 50px; border-radius: 50%; backdrop-filter: blur(10px);
+                ">×</button>
+            `;
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+            document.body.appendChild(modal);
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${message}`;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => notif.classList.add('show'), 100);
+            setTimeout(() => {
+                notif.classList.remove('show');
+                setTimeout(() => notif.remove(), 500);
+            }, 4500);
+        }
+        
+        function initParticles() {
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', {
+                    particles: {
+                        number: { value: 80 },
+                        color: { value: ['#3b82f6', '#60a5fa', '#93c5fd'] },
+                        shape: { type: 'circle' },
+                        opacity: { value: 0.4 },
+                        size: { value: 4 },
+                        move: { speed: 2 }
+                    },
+                    interactivity: {
+                        events: { onhover: { enable: true, mode: 'repulse' } }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
+</body>
+</html>

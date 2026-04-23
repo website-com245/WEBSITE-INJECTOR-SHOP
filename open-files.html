@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>File Manager - Injector Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      min-height: 100vh; color: white; padding: 20px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    .header { 
+      text-align: center; color: white; margin-bottom: 30px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .header p { color: #94a3b8; font-size: 1.1rem; }
+    
+    .box { 
+      background: rgba(255,255,255,0.1); backdrop-filter: blur(20px);
+      margin-bottom: 20px; padding: 25px; border-radius: 20px; 
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    
+    button { 
+      margin: 5px; padding: 12px 24px; border: none; border-radius: 12px; 
+      cursor: pointer; font-weight: 600; font-size: 0.95rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+    .primary-btn { 
+      background: linear-gradient(135deg, #10b981, #059669); color: white; 
+    }
+    .primary-btn:hover { 
+      background: linear-gradient(135deg, #059669, #047857); 
+      transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+    }
+    .danger-btn { 
+      background: linear-gradient(135deg, #ef4444, #dc2626); color: white; 
+    }
+    .danger-btn:hover { 
+      background: linear-gradient(135deg, #dc2626, #b91c1c); 
+      transform: translateY(-2px);
+    }
+    .success-btn { 
+      background: linear-gradient(135deg, #10b981, #059669); color: white; 
+    }
+    .secondary-btn { 
+      background: linear-gradient(135deg, #6b7280, #4b5563); color: white; 
+    }
+    
+    .file-input-wrapper { 
+      position: relative; display: inline-block; margin-right: 10px;
+    }
+    #fileInput { display: none; }
+    .file-input-label {
+      padding: 16px 24px; background: rgba(255,255,255,0.1);
+      border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px;
+      cursor: pointer; transition: all 0.3s; color: white;
+      backdrop-filter: blur(10px);
+    }
+    .file-input-label:hover { 
+      background: rgba(16,185,129,0.2); border-color: #10b981; 
+    }
+    
+    .file-item { 
+      margin: 20px 0; padding: 20px; border: 1px solid rgba(255,255,255,0.1); 
+      border-radius: 16px; background: rgba(255,255,255,0.05);
+      transition: all 0.3s; display: flex; align-items: center; gap: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .file-item:hover { 
+      border-color: #10b981; box-shadow: 0 10px 30px rgba(16,185,129,0.2);
+      transform: translateY(-4px); background: rgba(16,185,129,0.1);
+    }
+    .file-info { flex: 1; }
+    .file-actions { display: flex; gap: 12px; }
+    
+    .file-icon { 
+      font-size: 2.5rem; width: 60px; text-align: center; 
+      background: linear-gradient(135deg, #3b82f6, #2563eb); 
+      border-radius: 12px; padding: 12px; color: white;
+    }
+    .file-name { 
+      font-weight: 700; font-size: 1.2rem; margin-bottom: 8px; 
+      color: white; word-break: break-all;
+    }
+    .file-size { 
+      color: #94a3b8; font-size: 0.95rem; 
+    }
+    .copy-url-btn {
+      background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+      padding: 10px 16px !important; font-size: 0.85rem !important;
+    }
+    
+    .pagination { 
+      display: flex; justify-content: center; align-items: center; 
+      gap: 12px; margin: 40px 0; flex-wrap: wrap;
+    }
+    .pagination button { 
+      padding: 12px 20px; min-width: 50px; font-weight: 600;
+    }
+    .pagination button.active { 
+      background: linear-gradient(135deg, #10b981, #059669) !important;
+      box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+    }
+    
+    #status { 
+      font-weight: 600; margin: 15px 0; padding: 15px 20px;
+      border-radius: 12px; text-align: center;
+    }
+    .status-success { 
+      background: rgba(16,185,129,0.2); color: #10b981; 
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+    .status-error { 
+      background: rgba(239,68,68,0.2); color: #ef4444; 
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+    .status-info { 
+      background: rgba(59,130,246,0.2); color: #3b82f6; 
+      border: 1px solid rgba(59,130,246,0.3);
+    }
+    
+    #progress { 
+      width: 100%; height: 10px; border-radius: 6px;
+      margin-top: 15px; background: rgba(255,255,255,0.1);
+    }
+    
+    .stats { 
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+      gap: 20px; margin-bottom: 30px;
+    }
+    .stat-card { 
+      background: rgba(255,255,255,0.1); padding: 25px; 
+      border-radius: 16px; text-align: center; backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .stat-number { 
+      font-size: 2.5rem; font-weight: 800; 
+      background: linear-gradient(135deg, #10b981, #34d399);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .search-box { 
+      width: 100%; padding: 16px 20px; border: 2px solid rgba(255,255,255,0.2); 
+      border-radius: 12px; font-size: 1rem; background: rgba(255,255,255,0.1);
+      color: white; backdrop-filter: blur(10px);
+      margin-bottom: 20px;
+    }
+    .search-box::placeholder { color: #94a3b8; }
+    .search-box:focus { 
+      outline: none; border-color: #10b981; 
+      box-shadow: 0 0 0 4px rgba(16,185,129,0.2);
+    }
+    
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .file-item { flex-direction: column; text-align: center; }
+      .file-actions { justify-content: center; margin-top: 15px; }
+      .pagination { flex-direction: column; gap: 10px; }
+      .header h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-cloud-upload-alt"></i> File Manager</h1>
+      <p>Upload & manage your product files - Copy direct links for shop</p>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="totalFiles">0</div>
+        <div>Total Files</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalSize">0 MB</div>
+        <div>Total Storage</div>
+      </div>
+    </div>
+
+    <div class="box">
+      <h3 style="margin-bottom: 20px; color: white; font-size: 1.4rem;">
+        <i class="fas fa-upload"></i> Upload Files
+      </h3>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px;">
+        <div class="file-input-wrapper">
+          <input type="file" id="fileInput" multiple accept=".apk,image/*,.zip,.rar"/>
+          <label for="fileInput" class="file-input-label">
+            <i class="fas fa-file-upload"></i> Select Files (.apk, images, archives)
+          </label>
+        </div>
+        <button class="primary-btn" onclick="uploadFiles()">
+          <i class="fas fa-rocket"></i> Upload Files
+        </button>
+        <button class="secondary-btn" onclick="loadFiles()">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
+      
+      <div id="status"></div>
+      <progress id="progress" value="0" max="100" style="width: 100%; height: 8px;"></progress>
+    </div>
+
+    <div class="box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; color: white; font-size: 1.4rem;">
+          <i class="fas fa-folder-open"></i> Your Files 
+          <span id="filesCount" style="color: #94a3b8;">(0 files)</span>
+        </h3>
+        <div>
+          <input type="text" class="search-box" id="searchInput" 
+                 placeholder="Search files..." onkeyup="filterFiles()">
+        </div>
+      </div>
+      
+      <div id="fileList"></div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  
+<script>
+    const supabaseUrl = "https://ajnhdpqljlbcsqdyjczo.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFqbmhkcHFsamxiY3NxZHlqY3pvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MDgzMTYsImV4cCI6MjA5MTM4NDMxNn0.lhEFyJz4lGlYY_eDCR8urTRl3zIzswEreM-nzUopLuA";
+    const bucket = "Shop-ni-shan";
+    const supaClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    let allFiles = [];
+    let filteredFiles = [];
+    let currentPage = 1;
+    let itemsPerPage = 8;
+    let searchTerm = '';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadFiles();
+        setupDragAndDrop();
+    });
+
+    // ✅ FIXED: Upload function with better error handling
+    window.uploadFiles = async function () {
+        const files = document.getElementById("fileInput").files;
+        const status = document.getElementById("status");
+        const progress = document.getElementById("progress");
+
+        if (files.length === 0) {
+            showStatus("❌ No files selected", "error");
+            return;
+        }
+
+        showStatus(`⏳ Uploading ${files.length} file(s)...`, "info");
+        progress.value = 10;
+
+        let uploadedCount = 0;
+        const totalFiles = files.length;
+        const currentUser = localStorage.getItem('apkUser') || 'guest';
+
+        try {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const timestamp = Date.now() + i * 1000; // Unique timestamp
+                const fileName = `${currentUser}_${timestamp}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                
+                const { error } = await supaClient.storage
+                    .from(bucket)
+                    .upload(fileName, file, { 
+                        upsert: true,
+                        contentType: file.type || 'application/octet-stream'
+                    });
+                
+                if (!error) {
+                    uploadedCount++;
+                } else {
+                    console.error(`Upload failed: ${file.name}`, error);
+                }
+                
+                progress.value = 10 + ((i + 1) / totalFiles) * 90;
+            }
+
+            progress.value = 100;
+            showStatus(`✅ ${uploadedCount}/${totalFiles} files uploaded successfully!`, "success");
+            
+            document.getElementById("fileInput").value = '';
+            setTimeout(() => loadFiles(), 2000); // Refresh after upload
+            
+        } catch (error) {
+            showStatus(`❌ Upload failed: ${error.message}`, "error");
+        }
+    };
+
+    // ✅ FIXED: Load files with timeout & retry
+    async function loadFiles(page = 1, retry = 0) {
+        currentPage = page;
+        const status = document.getElementById("status");
+        status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading files...';
+        
+        try {
+            const { data, error } = await Promise.race([
+                supaClient.storage.from(bucket).list('', {
+                    limit: 1000,
+                    sortBy: { column: 'created_at', order: 'desc' }
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
+            ]);
+            
+            if (error && retry < 2) {
+                // Retry once
+                setTimeout(() => loadFiles(page, retry + 1), 1000);
+                return;
+            }
+            
+            if (error) {
+                console.warn('List failed:', error.message);
+                showStatus("📁 Upload files to see them here", "info");
+                allFiles = [];
+            } else {
+                allFiles = data || [];
+            }
+            
+            applyFilters();
+            renderFiles();
+            renderPagination();
+            updateStats();
+            
+        } catch (error) {
+            console.warn('Load timeout:', error.message);
+            showStatus("📁 Ready - Upload files to start", "info");
+            allFiles = [];
+            renderFiles();
+        }
+    }
+
+    function applyFilters() {
+        filteredFiles = allFiles.filter(file => 
+            file.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+
+    window.filterFiles = function() {
+        searchTerm = document.getElementById("searchInput").value;
+        currentPage = 1;
+        applyFilters();
+        renderFiles();
+        renderPagination();
+    };
+
+    function renderFiles() {
+        const fileList = document.getElementById("fileList");
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageFiles = filteredFiles.slice(start, end);
+        
+        fileList.innerHTML = '';
+        
+        if (pageFiles.length === 0) {
+            fileList.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                    <i class="fas fa-folder-open" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;"></i>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 10px;">${allFiles.length === 0 ? 'No files yet' : 'No matching files'}</h3>
+                    <p style="font-size: 1.1rem;">${allFiles.length === 0 ? 'Upload your first APK!' : 'Try different search'}</p>
+                    ${allFiles.length === 0 ? '<button class="primary-btn" onclick="loadFiles()" style="margin-top: 15px;"><i class="fas fa-sync"></i> Refresh</button>' : ''}
+                </div>
+            `;
+        } else {
+            pageFiles.forEach(file => {
+                const fileItem = createFileItem(file);
+                fileList.appendChild(fileItem);
+            });
+        }
+        
+        document.getElementById("filesCount").textContent = `(${filteredFiles.length} files)`;
+    }
+
+    function createFileItem(file) {
+        const div = document.createElement("div");
+        div.className = "file-item";
+        
+        const icon = getFileIcon(file.name);
+        const size = formatFileSize(file.metadata?.size || 0);
+        const { data: urlData } = supaClient.storage.from(bucket).getPublicUrl(file.name);
+        const directUrl = `https://ajnhdpqljlbcsqdyjczo.supabase.co/storage/v1/object/public/Shop-ni-shan/${file.name}`;
+        
+        div.innerHTML = `
+            <div style="display: flex; align-items: center; flex: 1;">
+                <div class="file-icon">${icon}</div>
+                <div class="file-info">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${size} • ${file.created_at ? new Date(file.created_at).toLocaleDateString('en-PH') : 'Unknown'}</div>
+                </div>
+            </div>
+            <div class="file-actions">
+                <button class="copy-url-btn" onclick="copyDirectUrl('${directUrl.replace(/'/g, "\\'")}')" title="Copy for Shop">
+                    <i class="fas fa-link"></i> Copy Link
+                </button>
+                <a href="${urlData.publicUrl}" target="_blank" class="primary-btn" style="padding: 10px 16px; font-size: 0.85rem;">
+                    <i class="fas fa-download"></i>
+                </a>
+                <button class="success-btn" onclick="previewFile('${file.name.replace(/'/g, "\\'")}')" style="padding: 10px 16px;">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="danger-btn" onclick="deleteFile('${file.name.replace(/'/g, "\\'")}')" style="padding: 10px 16px;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        return div;
+    }
+
+    window.copyDirectUrl = function(url) {
+        navigator.clipboard.writeText(decodeURIComponent(url)).then(() => {
+            showStatus('✅ Direct link copied! Paste in Shop → "Product Hosting"', 'success');
+            setTimeout(() => document.getElementById('status').innerHTML = '', 3000);
+        }).catch(() => {
+            // Fallback: Select text
+            const textArea = document.createElement('textarea');
+            textArea.value = decodeURIComponent(url);
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showStatus('✅ Link selected - Ctrl+C to copy', 'success');
+        });
+    };
+
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+        const pagination = document.getElementById("pagination");
+        
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+        
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+        
+        let html = `
+            <button class="secondary-btn" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>
+                <i class="fas fa-angle-double-left"></i>
+            </button>
+            <button class="secondary-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                <i class="fas fa-angle-left"></i>
+            </button>
+        `;
+        
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="secondary-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+        }
+        
+        html += `
+            <button class="secondary-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                <i class="fas fa-angle-right"></i>
+            </button>
+            <button class="secondary-btn" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>
+                <i class="fas fa-angle-double-right"></i>
+            </button>
+            <span style="color: #94a3b8;">Page ${currentPage} of ${totalPages}</span>
+        `;
+        
+        pagination.innerHTML = html;
+    }
+
+    window.changePage = function(page) {
+        const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+        if (page < 1 || page > totalPages) return;
+        loadFiles(page);
+    };
+
+    function updateStats() {
+        const totalSize = allFiles.reduce((sum, file) => sum + (file.metadata?.size || 0), 0);
+        document.getElementById("totalFiles").textContent = allFiles.length.toLocaleString();
+        document.getElementById("totalSize").textContent = formatFileSize(totalSize);
+    }
+
+    function showStatus(message, type) {
+        const status = document.getElementById("status");
+        status.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i> ${message}`;
+        status.className = `status-${type}`;
+    }
+
+    function getFileIcon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        if (['jpg','jpeg','png','gif','webp','svg'].includes(ext)) return '<i class="fas fa-image"></i>';
+        if (['mp4','avi','mov','mkv','webm'].includes(ext)) return '<i class="fas fa-video"></i>';
+        if (['mp3','wav','flac','aac'].includes(ext)) return '<i class="fas fa-music"></i>';
+        if (['pdf'].includes(ext)) return '<i class="fas fa-file-pdf"></i>';
+        if (['apk','zip','rar'].includes(ext)) return '<i class="fas fa-file-archive"></i>';
+        return '<i class="fas fa-file"></i>';
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    window.deleteFile = async function(fileName) {
+        if (!confirm(`Delete "${fileName}"?`)) return;
+        
+        try {
+            const { error } = await supaClient.storage.from(bucket).remove([fileName]);
+            if (error) throw error;
+            showStatus("✅ File deleted!", "success");
+            loadFiles(currentPage);
+        } catch (error) {
+            showStatus("❌ Delete failed: " + error.message, "error");
+        }
+    };
+
+    window.previewFile = function(fileName) {
+        const { data } = supaClient.storage.from(bucket).getPublicUrl(fileName);
+        window.open(data.publicUrl, '_blank');
+    };
+
+    function setupDragAndDrop() {
+        const dropZone = document.querySelector('.file-input-label');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+        
+        dropZone.addEventListener('drop', handleDrop, false);
+        
+        function highlight(e) {
+            dropZone.style.background = 'rgba(16,185,129,0.3)';
+            dropZone.style.borderColor = '#10b981';
+        }
+        
+        function unhighlight(e) {
+            dropZone.style.background = 'rgba(255,255,255,0.1)';
+            dropZone.style.borderColor = 'rgba(255,255,255,0.3)';
+        }
+        
+        function handleDrop(e) {
+            const files = e.dataTransfer.files;
+            document.getElementById("fileInput").files = files;
+            showStatus(`${files.length} files ready! Click Upload`, "success");
+        }
+    }
+</script>
+      </body>
+      </html>

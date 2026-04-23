@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Injector Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .admin-dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2.5rem;
+        }
+        
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+            padding: 2rem 0;
+        }
+        
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            border-radius: 2px;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #10b981, #34d399, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .dashboard-header p {
+            font-size: 1.3rem;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 4rem;
+        }
+        
+        .stat-box {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 32px 64px rgba(16, 185, 129, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.75rem;
+        }
+        
+        .stat-label {
+            color: #cbd5e1;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        .orders-section {
+            margin-bottom: 3rem;
+        }
+        
+        .orders-section h2 {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        #orderFilter {
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+        
+        #orderFilter:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        }
+        
+        .orders-table {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .table-header {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr 1fr 0.8fr 1fr 1.5fr;
+            gap: 1.5rem;
+            padding: 2rem 2.5rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.1));
+            font-weight: 600;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        
+        .table-row {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr 1fr 0.8fr 1fr 1.5fr;
+            gap: 1.5rem;
+            padding: 2rem 2.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .table-row::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 0;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            transition: height 0.3s;
+        }
+        
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(8px);
+        }
+        
+        .table-row:hover::before {
+            height: 60px;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .status-pending {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #d97706;
+        }
+        
+        .status-completed {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #059669;
+        }
+        
+        .status-download {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #2563eb;
+        }
+        
+        .btn-sm {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669, #10b981);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+        }
+        
+        .proof-preview {
+            max-width: 70px;
+            max-height: 70px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .proof-preview:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 1.25rem 2.5rem;
+            border-radius: 16px;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: white;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .top-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-dashboard {
+                padding: 1.5rem;
+            }
+            
+            .table-header,
+            .table-row {
+                grid-template-columns: 1fr 1fr 1fr 1fr;
+                font-size: 0.9rem;
+                gap: 0.75rem;
+                padding: 1.5rem 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="admin-dashboard">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+            <p>Manage Orders & Products with Precision</p>
+        </header>
+        
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+                <div class="stat-number" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                <div class="stat-number" id="totalRevenue">₱0</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-number" id="pendingOrders">0</div>
+                <div class="stat-label">Pending Orders</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-box"></i></div>
+                <div class="stat-number" id="totalProducts">0</div>
+                <div class="stat-label">Total Products</div>
+            </div>
+        </div>
+        
+        <!-- Orders Table -->
+        <div class="orders-section">
+            <div class="top-controls">
+                <h2><i class="fas fa-shopping-cart"></i> Recent Orders</h2>
+                <select id="orderFilter">
+                    <option value="all">All Orders</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="download">Download Ready</option>
+                </select>
+            </div>
+            <div class="orders-table">
+                <div class="table-header">
+                    <span>Date</span>
+                    <span>Product</span>
+                    <span>Buyer</span>
+                    <span>Seller</span>
+                    <span>Amount</span>
+                    <span>Status</span>
+                    <span>Actions</span>
+                </div>
+                <div id="ordersList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        let products = {};
+        
+        window.onload = function() {
+            initParticles();
+            loadDashboardData();
+        };
+        
+        function loadDashboardData() {
+            // Load products count
+            db.ref('shop/products').once('value', snapshot => {
+                document.getElementById('totalProducts').textContent = Object.keys(snapshot.val() || {}).length;
+            });
+            
+            // Load orders
+            db.ref('shop/orders').on('value', snapshot => {
+                const orders = snapshot.val() || {};
+                const orderArray = Object.entries(orders).map(([id, order]) => ({ id, ...order }));
+                
+                updateStats(orderArray);
+                renderOrders(orderArray);
+            });
+        }
+        
+        function updateStats(orders) {
+            const totalOrders = orders.length;
+            const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.price || 0), 0);
+            const pendingOrders = orders.filter(order => order.status === 'pending').length;
+            
+            document.getElementById('totalOrders').textContent = totalOrders.toLocaleString();
+            document.getElementById('totalRevenue').textContent = `₱${totalRevenue.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('pendingOrders').textContent = pendingOrders.toLocaleString();
+        }
+        
+        function renderOrders(orders) {
+            const container = document.getElementById('ordersList');
+            const filter = document.getElementById('orderFilter').value;
+            
+            const filteredOrders = orders.filter(order =>
+                filter === 'all' || order.status === filter
+            ).sort((a, b) => b.timestamp - a.timestamp);
+            
+            container.innerHTML = '';
+            
+            filteredOrders.slice(0, 100).forEach(order => {
+                const row = document.createElement('div');
+                row.className = `table-row status-${order.status}`;
+                
+                // Only show Accept/Reject buttons for PENDING orders
+                const actions = order.status === 'pending' ? `
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="btn-sm btn-success" onclick="event.stopPropagation(); approveOrder('${order.id}')" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                    <i class="fas fa-check"></i> Accept
+                </button>
+                <button class="btn-sm btn-danger" onclick="event.stopPropagation(); rejectOrder('${order.id}')" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+            </div>
+        ` : `
+            <span style="color: #94a3b8; font-size: 0.8rem; font-weight: 500;">${order.status.toUpperCase()}</span>
+        `;
+                
+                row.innerHTML = `
+            <span>${new Date(order.timestamp).toLocaleString('en-PH')}</span>
+            <span>${order.productName || 'N/A'}</span>
+            <span>${order.buyer}</span>
+            <span>${order.seller}</span>
+            <span>₱${parseFloat(order.price || 0).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+            <span><span class="status-badge status-${order.status}">${(order.status || 'pending').toUpperCase()}</span></span>
+            <span>
+                ${actions}
+                ${order.proofImage ? `<img src="${order.proofImage}" class="proof-preview" title="Payment Proof" onclick="event.stopPropagation(); openProof('${order.proofImage}')">` : ''}
+            </span>
+        `;
+                container.appendChild(row);
+            });
+        }
+        
+        function approveOrder(orderId) {
+            db.ref(`shop/orders/${orderId}`).update({
+                status: 'completed',
+                approvedAt: Date.now()
+            }).then(() => {
+                showNotification('Order approved successfully!', 'success');
+            }).catch(error => {
+                showNotification('Error approving order!', 'error');
+                console.error(error);
+            });
+        }
+        
+        function rejectOrder(orderId) {
+            if (confirm('Are you sure you want to reject this order?')) {
+                db.ref(`shop/orders/${orderId}`).update({
+                    status: 'rejected',
+                    rejectedAt: Date.now()
+                }).then(() => {
+                    showNotification('Order rejected successfully!', 'error');
+                }).catch(error => {
+                    showNotification('Error rejecting order!', 'error');
+                    console.error(error);
+                });
+            }
+        }
+        
+        function openProof(imageUrl) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.95); z-index: 10001; display: flex; 
+                align-items: center; justify-content: center; backdrop-filter: blur(5px);
+            `;
+            modal.innerHTML = `
+                <div style="position: relative; max-width: 90%; max-height: 90%;">
+                    <img src="${imageUrl}" style="max-width: 100%; max-height: 90vh; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+                    <button onclick="this.parentElement.parentElement.remove()" style="
+                        position: absolute; top: -15px; right: -15px; background: linear-gradient(135deg, #ef4444, #f87171); 
+                        border: none; color: white; font-size: 1.5rem; cursor: pointer; width: 50px; height: 50px;
+                        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                        box-shadow: 0 8px 24px rgba(239,68,68,0.4); transition: all 0.3s;
+                    " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        document.getElementById('orderFilter').addEventListener('change', function() {
+            const ordersList = document.getElementById('ordersList');
+            const currentOrders = Array.from(ordersList.children);
+            renderOrders(currentOrders.map(row => {
+                // Extract order data from row attributes or recreate logic
+                loadDashboardData(); // Reload to filter properly
+            }));
+        });
+        
+        function showNotification(message, type = 'success') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => notif.classList.add('show'), 100);
+            setTimeout(() => {
+                notif.classList.remove('show');
+                setTimeout(() => notif.remove(), 400);
+            }, 4000);
+        }
+        
+        function initParticles() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: ['#3b82f6', '#1d4ed8', '#10b981', '#eab308'] },
+                    shape: { type: 'circle' },
+                    opacity: { value: 0.4, random: true },
+                    size: { value: 4, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: '#10b981',
+                        opacity: 0.2,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: 'none',
+                        random: true,
+                        straight: false,
+                        out_mode: 'out',
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: { enable: true, mode: 'grab' },
+                        onclick: { enable: true, mode: 'push' },
+                        resize: true
+                    }
+                },
+                retina_detect: true
+            });
+        }
+        
+        // Loading animation
+        window.addEventListener('load', function() {
+            const dashboard = document.querySelector('.admin-dashboard');
+            dashboard.style.opacity = '0';
+            dashboard.style.transform = 'translateY(30px)';
+            setTimeout(() => {
+                dashboard.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                dashboard.style.opacity = '1';
+                dashboard.style.transform = 'translateY(0)';
+            }, 300);
+        });
+        
+        // Add smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+    </script>
+</body>
+
+</html>

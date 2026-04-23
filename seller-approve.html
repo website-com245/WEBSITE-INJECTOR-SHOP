@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Approve Orders - Injector Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); 
+            color: white; min-height: 100vh; overflow-x: hidden; 
+        }
+        
+        #particles-js { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        
+        /* HEADER */
+        .header {
+            background: rgba(15,23,42,0.95); backdrop-filter: blur(20px);
+            padding: 2rem 2.5rem; border-bottom: 1px solid rgba(51,65,85,0.5);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 { font-size: 2.5rem; display: flex; align-items: center; gap: 1rem; }
+        .back-btn { 
+            background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; 
+            padding: 1rem 2rem; border-radius: 16px; text-decoration: none; 
+            font-weight: 600; transition: all 0.3s; box-shadow: 0 10px 30px rgba(59,130,246,0.4);
+        }
+        .back-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 40px rgba(59,130,246,0.5); }
+        
+        /* STATS */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 2rem; padding: 2.5rem; max-width: 1400px; margin: 0 auto;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(20px);
+            border-radius: 24px; padding: 2rem; text-align: center;
+            border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s;
+            position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+        .stat-card:hover { transform: translateY(-10px); box-shadow: 0 30px 60px rgba(0,0,0,0.3); }
+        .stat-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .stat-number { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .income .stat-number { background: linear-gradient(135deg, #10b981, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .pending .stat-number { background: linear-gradient(135deg, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* TABS */
+        .tabs {
+            max-width: 1400px; margin: 0 auto 2rem; padding: 0 2.5rem;
+            display: flex; gap: 1rem; background: rgba(255,255,255,0.08);
+            border-radius: 16px; padding: 0.5rem; backdrop-filter: blur(20px);
+        }
+        .tab-btn {
+            flex: 1; padding: 1rem 2rem; border-radius: 12px; border: none;
+            background: transparent; color: #94a3b8; font-weight: 600; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #10b981, #34d399); color: white;
+            box-shadow: 0 10px 30px rgba(16,185,129,0.3);
+        }
+        
+        /* ORDERS GRID */
+        .orders-grid {
+            max-width: 1400px; margin: 0 auto; padding: 0 2.5rem 3rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 2rem;
+        }
+        .order-card {
+            background: rgba(255,255,255,0.95); border-radius: 24px;
+            overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+            transition: all 0.4s; border: 1px solid rgba(226,232,240,0.5);
+            color: #1e293b;
+        }
+        .order-card:hover { transform: translateY(-12px); box-shadow: 0 40px 80px rgba(0,0,0,0.2); }
+        
+        .order-header {
+            padding: 2rem 2rem 1.5rem; border-bottom: 1px solid #e2e8f0;
+            display: flex; justify-content: space-between; align-items: flex-start;
+        }
+        .order-status {
+            padding: 0.75rem 1.5rem; border-radius: 50px; font-size: 0.875rem;
+            font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .status-pending { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
+        .status-approved { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #059669; }
+        
+        .product-info { padding: 0 2rem 1.5rem; display: flex; gap: 1.5rem; }
+        .product-thumb { 
+            width: 80px; height: 80px; border-radius: 16px; object-fit: cover;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .product-details h3 { margin: 0 0 0.5rem 0; font-size: 1.2rem; }
+        .product-price { 
+            font-size: 1.4rem; font-weight: 800; color: #10b981; 
+            background: linear-gradient(135deg, #10b981, #34d399);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .proof-section {
+            padding: 1.5rem 2rem; background: #f8fafc; border-top: 1px solid #e2e8f0;
+        }
+        .proof-image {
+            width: 100%; max-height: 200px; object-fit: cover; border-radius: 16px;
+            cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        .proof-image:hover { transform: scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        
+        .buyer-info {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe); padding: 1rem;
+            border-radius: 12px; border-left: 4px solid #3b82f6; margin-bottom: 1.5rem;
+        }
+        
+        .actions {
+            padding: 2rem; display: flex; gap: 1rem; background: #f8fafc;
+        }
+        .btn-action {
+            flex: 1; padding: 1.2rem; border-radius: 16px; border: none;
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .btn-approve { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 10px 30px rgba(16,185,129,0.4); }
+        .btn-reject { background: linear-gradient(135deg, #ef4444, #f87171); color: white; box-shadow: 0 10px 30px rgba(239,68,68,0.4); }
+        .btn-approve:hover, .btn-reject:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        
+        /* NOTIFICATION */
+        .notification {
+            position: fixed; top: 30px; right: 30px; padding: 1.5rem 2.5rem;
+            border-radius: 20px; z-index: 10001; font-weight: 600;
+            transform: translateX(400px); opacity: 0; transition: all 0.4s;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .notification.success { background: linear-gradient(135deg, #10b981, #34d399); color: white; }
+        .notification.error { background: linear-gradient(135deg, #ef4444, #f87171); color: white; }
+        .notification.show { transform: translateX(0); opacity: 1; }
+        
+        @media (max-width: 768px) {
+            .header { padding: 1.5rem; flex-direction: column; gap: 1rem; text-align: center; }
+            .stats-grid, .orders-grid { padding: 1rem; grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+            .actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <!-- HEADER -->
+    <div class="header">
+        <h1><i class="fas fa-check-circle"></i> Order Approval</h1>
+        <a href="seller-dashboard.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card income">
+            <div class="stat-icon"><i class="fas fa-coins"></i></div>
+            <div class="stat-number" id="totalIncome">₱0.00</div>
+            <div style="color: #94a3b8; font-size: 1.1rem;">Total Income</div>
+        </div>
+        <div class="stat-card pending">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-number" id="pendingCount">0</div>
+            <div style="color: #94a3b8; font-size: 1.1rem;">Pending Approvals</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-number" id="approvedCount">0</div>
+            <div style="color: #94a3b8; font-size: 1.1rem;">Approved Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+            <div class="stat-number" id="totalProducts">0</div>
+            <div style="color: #94a3b8; font-size: 1.1rem;">Your Products</div>
+        </div>
+    </div>
+    
+    <!-- TABS -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('pending')"><i class="fas fa-clock"></i> Pending</button>
+        <button class="tab-btn" onclick="switchTab('all')"><i class="fas fa-list"></i> All Orders</button>
+        <button class="tab-btn" onclick="switchTab('approved')"><i class="fas fa-check-circle"></i> Approved</button>
+    </div>
+    
+    <!-- ORDERS -->
+    <div id="pending" class="orders-grid active"></div>
+    <div id="all" class="orders-grid"></div>
+    <div id="approved" class="orders-grid"></div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        let currentUser = localStorage.getItem('apkUser') || 'guest';
+        let sellerOrders = {};
+        let products = {};
+        let currentTab = 'pending';
+        
+        window.onload = function() {
+            initParticles();
+            loadSellerData();
+        };
+        
+        function loadSellerData() {
+            // Load products
+            db.ref('shop/products').orderByChild('owner').equalTo(currentUser).on('value', snapshot => {
+                products = snapshot.val() || {};
+                document.getElementById('totalProducts').textContent = Object.keys(products).length;
+                loadSellerOrders();
+            });
+            
+            loadSellerOrders();
+        }
+        
+        function loadSellerOrders() {
+            db.ref('shop/orders')
+                .orderByChild('seller')
+                .equalTo(currentUser)
+                .on('value', snapshot => {
+                    sellerOrders = snapshot.val() || {};
+                    renderOrders();
+                    updateStats();
+                });
+        }
+        
+        function updateStats() {
+            const orderArray = Object.entries(sellerOrders).map(([id, order]) => ({ id, ...order }));
+            const pendingCount = orderArray.filter(o => o.status === 'pending').length;
+            const approvedCount = orderArray.filter(o => o.status === 'approved' || o.status === 'download' || o.status === 'completed').length;
+            const totalIncome = orderArray.reduce((sum, order) => {
+                return sum + parseFloat(order.price || 0);
+            }, 0);
+            
+            document.getElementById('pendingCount').textContent = pendingCount;
+            document.getElementById('approvedCount').textContent = approvedCount;
+            document.getElementById('totalIncome').textContent = `₱${totalIncome.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+        
+        function renderOrders() {
+            const orderArray = Object.entries(sellerOrders).map(([id, order]) => ({ id, ...order }));
+            
+            // Pending Orders
+            let pendingOrders = orderArray.filter(o => o.status === 'pending');
+            renderTab('pending', pendingOrders);
+            
+            // All Orders
+            renderTab('all', orderArray);
+            
+            // Approved Orders
+            let approvedOrders = orderArray.filter(o => o.status === 'approved' || o.status === 'download' || o.status === 'completed');
+            renderTab('approved', approvedOrders);
+        }
+        
+        function renderTab(tabId, orders) {
+            const container = document.getElementById(tabId);
+            container.innerHTML = '';
+            
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 6rem 2rem; color: #64748b;">
+                        <i class="fas fa-inbox" style="font-size: 5rem; margin-bottom: 2rem; opacity: 0.5;"></i>
+                        <h3 style="font-size: 1.8rem; margin-bottom: 1rem;">No ${tabId === 'pending' ? 'pending' : tabId === 'approved' ? 'approved' : 'orders'} yet</h3>
+                        <p style="font-size: 1.1rem;">${tabId === 'pending' ? 'Upload products to receive orders' : 'No orders in this category'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            orders.sort((a, b) => b.timestamp - a.timestamp).forEach(order => {
+                const product = products[order.productId];
+                if (!product) return;
+                
+                const card = document.createElement('div');
+                card.className = 'order-card';
+                
+                card.innerHTML = `
+                    <div class="order-header">
+                        <div>
+                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.3rem;">${product.name}</h3>
+                            <div style="color: #64748b; font-size: 0.9rem;">${new Date(order.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div class="order-status status-${order.status}">
+                            ${order.status.toUpperCase()}
+                        </div>
+                    </div>
+                    
+                    <div class="product-info">
+                        <img src="${product.thumbnail || 'https://via.placeholder.com/80x80/1e293b/94a3b8?text=No+Image'}" 
+                             alt="${product.name}" class="product-thumb">
+                        <div style="flex: 1;">
+                            <div class="product-price">₱${parseFloat(product.price).toFixed(2)}</div>
+                                                 <div class="buyer-info">
+                                <strong>Buyer:</strong> ${order.buyer}<br>
+                                <strong>GCash:</strong> ${order.buyerGcash || 'Not provided'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="proof-section">
+                        <img src="${order.proofImage}" class="proof-image" 
+                             onclick="openProofModal('${order.proofImage}')" 
+                             title="Click to enlarge payment proof">
+                    </div>
+                    
+                    <div class="actions">
+                        ${order.status === 'pending' ? `
+                            <button class="btn-action btn-approve" onclick="approveOrder('${order.id}')">
+                                <i class="fas fa-check"></i> Approve Order
+                            </button>
+                            <button class="btn-action btn-reject" onclick="rejectOrder('${order.id}')">
+                                <i class="fas fa-times"></i> Reject Order
+                            </button>
+                        ` : `
+                            <div style="text-align: center; color: #64748b; font-weight: 600;">
+                                <i class="fas fa-check-circle" style="font-size: 2rem; color: #10b981; margin-bottom: 0.5rem;"></i>
+                                <div>Order ${order.status === 'approved' ? 'Approved' : 'Completed'}</div>
+                            </div>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            // Update tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+            
+            // Show tab
+            document.querySelectorAll('.orders-grid').forEach(grid => grid.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // APPROVE ORDER
+        function approveOrder(orderId) {
+            if (confirm('Approve this order? Buyer will receive download access.')) {
+                db.ref(`shop/orders/${orderId}`).update({
+                    status: 'approved',
+                    approvedBy: currentUser,
+                    approvedAt: Date.now()
+                }).then(() => {
+                    showNotification('✅ Order approved successfully!', 'success');
+                }).catch(err => {
+                    showNotification('❌ Error approving order: ' + err.message, 'error');
+                });
+            }
+        }
+        
+        // REJECT ORDER
+        function rejectOrder(orderId) {
+            if (confirm('Reject this order? This will notify the buyer.')) {
+                db.ref(`shop/orders/${orderId}`).update({
+                    status: 'rejected',
+                    rejectedBy: currentUser,
+                    rejectedAt: Date.now()
+                }).then(() => {
+                    showNotification('❌ Order rejected!', 'error');
+                }).catch(err => {
+                    showNotification('❌ Error rejecting order: ' + err.message, 'error');
+                });
+            }
+        }
+        
+        function openProofModal(imageSrc) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.95); z-index: 10001; display: flex; 
+                align-items: center; justify-content: center; cursor: pointer;
+            `;
+            modal.innerHTML = `
+                <img src="${imageSrc}" style="max-width: 90%; max-height: 90%; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+                <button onclick="this.parentElement.remove(); event.stopPropagation();" style="
+                    position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.2); 
+                    border: none; color: white; font-size: 2.5rem; cursor: pointer; z-index: 1;
+                    width: 60px; height: 60px; border-radius: 50%; backdrop-filter: blur(10px);
+                    transition: all 0.3s;
+                " onmouseover="this.style.background='rgba(255,255,255,0.3)'">×</button>
+            `;
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+            document.body.appendChild(modal);
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => notif.classList.add('show'), 100);
+            setTimeout(() => {
+                notif.classList.remove('show');
+                setTimeout(() => notif.remove(), 400);
+            }, 4000);
+        }
+        
+        function initParticles() {
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', {
+                    particles: {
+                        number: { value: 80 },
+                        color: { value: ['#10b981', '#34d399', '#3b82f6'] },
+                        shape: { type: 'circle' },
+                        opacity: { value: 0.4 },
+                        size: { value: 4 },
+                        move: { speed: 2 }
+                    },
+                    interactivity: {
+                        events: { onhover: { enable: true, mode: 'repulse' } }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>      

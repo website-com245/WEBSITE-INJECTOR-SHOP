@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Novara Mods UI Replica</title>
+<style>
+  /* Reset and basics */
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    height: 100%;
+    margin: 0;
+    background: url('https://i.imgur.com/fJvHmVK.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+  }
+
+  /* Draggable container */
+  #app {
+    position: absolute;
+    top: 50px; left: 50px;
+    width: 720px;
+    max-width: 95vw;
+    background: rgba(20, 20, 30, 0.85);
+    border-radius: 10px;
+    box-shadow: 0 0 30px #000a;
+    display: flex;
+    flex-direction: row;
+    color: #eee;
+    cursor: move; /* Indicate draggable */
+  }
+
+  /* Sidebar */
+  #sidebar {
+    width: 160px;
+    background: #191929;
+    border-radius: 10px 0 0 10px;
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #sidebar img {
+    width: 100px;
+    margin-bottom: 20px;
+  }
+  .tab {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: #212134;
+    color: #999;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.25s, color 0.25s;
+  }
+  .tab.active {
+    background: #bb0b13;
+    color: #fff;
+    box-shadow: 0 0 8px #bb0b13;
+  }
+  .tab:hover:not(.active) {
+    background: #2d2d4b;
+    color: #ddd;
+  }
+
+  /* Content panel */
+  #content {
+    flex: 1;
+    padding: 20px 25px;
+    display: flex;
+    flex-direction: column;
+  }
+  #header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+  }
+  #header .title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+  }
+  #header .subtitle {
+    font-size: 12px;
+    color: #bbb;
+    margin-left: 12px;
+    font-weight: 400;
+    flex: 1;
+    opacity: 0.8;
+  }
+  #btnClose {
+    cursor: pointer;
+    background: transparent;
+    color: #ddd;
+    border: none;
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1;
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
+    user-select: none;
+  }
+  #btnClose:hover {
+    background: #bb0b13;
+    color: white;
+  }
+
+  /* Body layout */
+  #body {
+    flex: 1;
+    display: flex;
+    gap: 25px;
+  }
+  /* Toggles column */
+  #toggles {
+    flex: 1.75;
+    background: #1b1b2d;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    max-height: 400px;
+  }
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 500;
+    color: #ddd;
+  }
+  .toggle-row label {
+    cursor: pointer;
+  }
+  /* Custom toggle switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    background-color: #55575d;
+    border-radius: 17px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transition: 0.3s;
+    border: 1.5px solid #444;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+  input:checked + .slider {
+    background-color: #bb0b13;
+    border-color: #bb0b13;
+  }
+  input:checked + .slider:before {
+    transform: translateX(20px);
+  }
+
+  /* Colors & sliders */
+  #colorsSliders {
+    flex: 1.25;
+    background: #1b1b2d;
+    border-radius: 8px;
+    padding: 20px;
+    color: #ddd;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .color-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: #bbb;
+  }
+  .color-label {
+    flex: 1;
+  }
+  .color-block {
+    width: 28px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1.8px solid #222;
+    cursor: pointer;
+    box-shadow: 0 0 6px #0008 inset;
+  }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .slider-label {
+    flex: 1;
+    font-size: 14px;
+    color: #ddd;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 90px;
+    height: 6px;
+    border-radius: 6px;
+    background: #55575d;
+    outline: none;
+    transition: background 0.2s ease-in-out;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #bb0b13;
+    border: 2px solid #fff;
+    box-shadow: 0 0 4px #bb0b13;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  input[type="range"]:active::-webkit-slider-thumb {
+    background: #ff1a30;
+  }
+  .slider-value {
+    width: 56px;
+    font-family: monospace;
+    font-size: 14px;
+    color: #ccc;
+    text-align: right;
+    user-select: none;
+  }
+
+  /* Bottom buttons */
+  #bottomButtons {
+    margin-top: 28px;
+    display: flex;
+    gap: 12px;
+  }
+  .bottom-btn {
+    flex: 1;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 0;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #fff;
+    user-select: none;
+    transition: box-shadow 0.3s ease;
+  }
+  .bottom-btn:active {
+    transform: scale(0.97);
+  }
+  #btnGuest {
+    background: linear-gradient(90deg, #7f8dae, #93a5c8);
+    box-shadow: inset 0 -3px 6px #5f6f8e;
+  }
+  #btnGuest:hover {
+    box-shadow: inset 0 -6px 8px #a0b1d0;
+  }
+  #btnGarena {
+    background: linear-gradient(90deg, #ef3636, #ba0e0e);
+    box-shadow: inset 0 -3px 6px #ad1c1c;
+  }
+  #btnGarena:hover {
+    box-shadow: inset 0 -6px 8px #e04040;
+  }
+  #btnFacebook {
+    background: linear-gradient(90deg, #3b5998, #2a437d);
+    box-shadow: inset 0 -3px 6px #2a3a65;
+  }
+  #btnFacebook:hover {
+    box-shadow: inset 0 -6px 8px #4a69c7;
+  }
+
+  /* Terms text */
+  #terms {
+    text-align: center;
+    margin-top: 14px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    color: #FFEBB0;
+    letter-spacing: 0.12em;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <img src="https://i.imgur.com/flVQZ5o.png" alt="Novara N Logo" />
+    <div class="tab active" id="tab-visual">Visual</div>
+    <div class="tab" id="tab-combat">Combat</div>
+    <div class="tab" id="tab-memory">Memory</div>
+    <div class="tab" id="tab-settings">Settings</div>
+  </div>
+
+  <div id="content">
+    <div id="header">
+      <div class="title">Visual</div>
+      <div class="subtitle">ESP Electronic Stability Program</div>
+      <button id="btnClose" title="Close">×</button>
+    </div>
+
+    <div id="body">
+      <div id="toggles">
+        <!-- Toggle switches inserted by JS -->
+      </div>
+
+      <div id="colorsSliders">
+        <div>
+          <div class="color-row">
+            <span class="color-label">Bot Line Color</span>
+            <div class="color-block" id="botLineColor"></div>
+          </div>
+          <div class="color-row">
+            <span class="color-label">Bot Box Color</span>
+            <div class="color-block" id="botBoxColor"></div>
+          </div>
+          <div class="color-row">
+            <span class="color-label">Player Line Color</span>
+            <div class="color-block" id="playerLineColor"></div>
+          </div>
+          <div class="color-row">
+            <span class="color-label">Player Box Color</span>
+            <div class="color-block" id="playerBoxColor"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="slider-row">
+            <span class="slider-label">Bot Line Thickness</span>
+            <input type="range" min="0" max="40" step="1" value="20" id="botLineThickness"/>
+            <span class="slider-value" id="botLineThicknessVal">2.0000</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">Bot Box Thickness</span>
+            <input type="range" min="0" max="40" step="1" value="20" id="botBoxThickness"/>
+            <span class="slider-value" id="botBoxThicknessVal">2.0000</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">Player Line Thickness</span>
+            <input type="range" min="0" max="40" step="1" value="20" id="playerLineThickness"/>
+            <span class="slider-value" id="playerLineThicknessVal">2.0000</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">Player Box Thickness</span>
+            <input type="range" min="0" max="40" step="1" value="20" id="playerBoxThickness"/>
+            <span class="slider-value" id="playerBoxThicknessVal">2.0000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="bottomButtons">
+      <button class="bottom-btn" id="btnGuest">GUEST</button>
+      <button class="bottom-btn" id="btnGarena">GARENA</button>
+      <button class="bottom-btn" id="btnFacebook">Sign in with Facebook</button>
+    </div>
+
+    <div id="terms">
+      TERMS OF USE &nbsp;&nbsp;&nbsp; PRIVACY POLICY
+    </div>
+  </div>
+</div>
+
+<script>
+  // Make #app draggable
+  (function() {
+    const app = document.getElementById('app');
+    let offsetX = 0, offsetY = 0;
+    let isDown = false;
+
+    app.addEventListener('mousedown', (e) => {
+      if(e.target !== document.getElementById('btnClose') && !e.target.closest('input') && !e.target.closest('button')) {
+        isDown = true;
+        offsetX = e.clientX - app.offsetLeft;
+        offsetY = e.clientY - app.offsetTop;
+        app.style.cursor = 'grabbing';
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDown = false;
+      app.style.cursor = 'move';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      let x = e.clientX - offsetX;
+      let y = e.clientY - offsetY;
+      // Keep inside viewport
+      x = Math.min(Math.max(0, x), window.innerWidth - app.offsetWidth);
+      y = Math.min(Math.max(0, y), window.innerHeight - app.offsetHeight);
+      app.style.left = x + 'px';
+      app.style.top = y + 'px';
+    });
+  })();
+
+  // Toggle switches data
+  const toggles = [
+    'Show Line',
+    'Show Box',
+    'Show Count',
+    'Show Health',
+    'Show Name',
+    'Show Distance',
+    'Show Alert',
+    'Show Skeleton',
+    'Show Aim Line'
+  ];
+
+  const togglesContainer = document.getElementById('toggles');
+
+  toggles.forEach(name => {
+    const row = document.createElement('div');
+    row.className = 'toggle-row';
+
+    const label = document.createElement('label');
+    label.innerText = name;
+    label.setAttribute('for', `toggle-${name.toLowerCase().replace(/ /g, '-')}`);
+
+    const switchLabel = document.createElement('label');
+    switchLabel.className = 'switch';
+
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = `toggle-${name.toLowerCase().replace(/ /g, '-')}`;
+    input.checked = false;
+
+    const spanSlider = document.createElement('span');
+    spanSlider.className = 'slider';
+
+    switchLabel.appendChild(input);
+    switchLabel.appendChild(spanSlider);
+
+    row.appendChild(label);
+    row.appendChild(switchLabel);
+    togglesContainer.appendChild(row);
+  });
+
+  // Color blocks toggle between green and red on click
+  function setupColorToggle(id, initialColor) {
+    const el = document.getElementById(id);
+    let isGreen = true;
+    el.style.backgroundColor = initialColor;
+    el.addEventListener('click', () => {
+      if(isGreen) {
+        el.style.backgroundColor = '#ff0000';
+      } else {
+        el.style.backgroundColor = '#00ff00';
+      }
+      isGreen = !isGreen;
+    });
+  }
+
+  setupColorToggle('botLineColor', '#00ff00');
+  setupColorToggle('botBoxColor', '#00ff00');
+  setupColorToggle('playerLineColor', '#ff0000');
+  setupColorToggle('playerBoxColor', '#ff0000');
+
+  // Slider value update handler
+  function setupSlider(sliderId, valueId) {
+    const slider = document.getElementById(sliderId);
+    const valueEl = document.getElementById(valueId);
+    function update() {
+      const val = (slider.value / 10).toFixed(4);
+      valueEl.textContent = val;
+    }
+    slider.addEventListener('input', update);
+    update(); // initialize
+  }
+
+  setupSlider('botLineThickness', 'botLineThicknessVal');
+  setupSlider('botBoxThickness', 'botBoxThicknessVal');
+  setupSlider('playerLineThickness', 'playerLineThicknessVal');
+  setupSlider('playerBoxThickness', 'playerBoxThicknessVal');
+
+  // Close button hides the app
+  document.getElementById('btnClose').addEventListener('click', () => {
+    document.getElementById('app').style.display = 'none';
+  });
+
+  // Bottom buttons toast simulation
+  function showToast(msg) {
+    let toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '30px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = 'rgba(0,0,0,0.75)';
+    toast.style.color = 'white';
+    toast.style.padding = '11px 20px';
+    toast.style.borderRadius = '8px';
+    toast.style.fontSize = '14px';
+    toast.style.zIndex = 9999;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.transition = 'opacity 0.3s ease';
+      toast.style.opacity = 0;
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  }
+
+  document.getElementById('btnGuest').addEventListener('click', () => showToast('Guest clicked'));
+  document.getElementById('btnGarena').addEventListener('click', () => showToast('Garena clicked'));
+  document.getElementById('btnFacebook').addEventListener('click', () => showToast('Facebook Sign-in clicked'));
+</script>
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Keys - Injector Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Same beautiful styling as buyer-dashboard */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        #particles-js {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 2rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.5);
+        }
+        
+        .page-stats {
+            max-width: 1400px;
+            margin: 0 auto 2rem;
+            padding: 0 2.5rem;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex: 1;
+            min-width: 200px;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+        
+        .keys-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2.5rem 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            gap: 2.5rem;
+        }
+        
+        .key-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            color: #1e293b;
+            transition: all 0.4s;
+        }
+        
+        .key-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2);
+        }
+        
+        .key-card.active-product {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+        
+        .product-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .product-info h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .key-status {
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+        }
+        
+        .status-ready {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+        
+        .keys-container {
+            padding: 2rem;
+            background: #f8fafc;
+            min-height: 200px;
+        }
+        
+        .key-item {
+            background: white;
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+            border-radius: 16px;
+            border-left: 5px solid #10b981;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .key-item:hover {
+            transform: translateX(8px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .key-code {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #1e293b;
+            background: #f1f5f9;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            min-width: 280px;
+            word-break: break-all;
+        }
+        
+        .key-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .copy-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 6rem 2rem;
+            color: #64748b;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 768px) {
+            .keys-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .page-stats {
+                padding: 1rem;
+                flex-direction: column;
+            }
+            
+            .key-item {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="particles-js"></div>
+    
+    <div class="header">
+        <h1><i class="fas fa-key"></i> Your Download Keys</h1>
+        <div style="display: flex; gap: 1rem;">
+            <a href="buyer-dashboard.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Purchases
+            </a>
+            <a href="shop.html" class="back-btn" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                <i class="fas fa-store"></i> Shop
+            </a>
+        </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="page-stats">
+        <div class="stat-card">
+            <div class="stat-number" style="color: #10b981;" id="totalKeys">0</div>
+            <div>Total Keys</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #3b82f6;" id="availableKeys">0</div>
+            <div>Available</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #f59e0b;" id="pendingOrders">0</div>
+            <div>Pending Orders</div>
+        </div>
+    </div>
+    
+    <div id="keysContainer" class="keys-grid">
+        <!-- Keys will load here -->
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        let currentUser = localStorage.getItem('apkUser') || 'guest';
+        let products = {};
+        let userOrders = {};
+        let userProductsWithKeys = [];
+        
+        // ✅ FIXED: Single window.onload
+        window.onload = function() {
+            initParticles();
+            loadAllData();
+        };
+        
+        // ✅ FIXED: Load ALL data properly
+        async function loadAllData() {
+            showLoading(true, 'Loading your keys...');
+            
+            try {
+                // 1. Load all products
+                const productsSnap = await db.ref('shop/products').once('value');
+                products = productsSnap.val() || {};
+                
+                // 2. Load user orders
+                const ordersSnap = await db.ref('shop/orders')
+                    .orderByChild('buyer').equalTo(currentUser).once('value');
+                userOrders = ordersSnap.val() || {};
+                
+                // 3. Filter approved orders and get keys
+                await processUserKeys();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showNotification('Error loading keys. Please refresh.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // ✅ FIXED: Process keys from approved orders
+        async function processUserKeys() {
+            userProductsWithKeys = [];
+            
+            const approvedOrders = Object.values(userOrders).filter(order =>
+                order.status === 'approved' || order.status === 'download' || order.status === 'completed'
+            );
+            
+            for (const order of approvedOrders) {
+                const product = products[order.productId];
+                if (product && product.keys) {
+                    // Get keys available to this user
+                    const userKeys = product.keys.filter(key =>
+                        !key.used || key.usedBy === currentUser
+                    );
+                    
+                    if (userKeys.length > 0) {
+                        userProductsWithKeys.push({
+                            orderId: order.id,
+                            productId: order.productId,
+                            product: product,
+                            keys: userKeys,
+                            orderStatus: order.status
+                        });
+                    }
+                }
+            }
+            
+            renderKeys();
+            updateStats();
+        }
+        
+        // ✅ FIXED: Proper rendering
+        function renderKeys() {
+            const container = document.getElementById('keysContainer');
+            
+            if (userProductsWithKeys.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-key"></i>
+                        <h3 style="font-size: 2rem; margin-bottom: 1rem; color: #94a3b8;">No keys available yet</h3>
+                        <p style="font-size: 1.2rem; max-width: 500px; margin: 0 auto 2rem;">
+                            Complete your purchases and wait for seller approval. 
+                            Keys will appear here automatically.
+                        </p>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                            <a href="buyer-dashboard.html" style="
+                                background: linear-gradient(135deg, #10b981, #059669); 
+                                color: white; padding: 1.25rem 2.5rem; border-radius: 16px; 
+                                text-decoration: none; font-weight: 700; box-shadow: 0 10px 25px rgba(16,185,129,0.4);
+                            ">Check Purchases</a>
+                            <a href="shop.html" style="
+                                background: linear-gradient(135deg, #3b82f6, #2563eb); 
+                                color: white; padding: 1.25rem 2.5rem; border-radius: 16px; 
+                                text-decoration: none; font-weight: 700; box-shadow: 0 10px 25px rgba(59,130,246,0.4);
+                            ">Visit Shop</a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // ✅ FIXED: Proper HTML generation
+            container.innerHTML = userProductsWithKeys.map(item => {
+                const keyCount = item.keys.length;
+                const unusedKeys = item.keys.filter(k => !k.used).length;
+                
+                return `
+                    <div class="key-card ${window.location.hash === '#' + item.productId ? 'active-product' : ''}" 
+                         data-product-id="${item.productId}">
+                        <div class="product-header">
+                            <div>
+                                <h3>${item.product.name}</h3>
+                                <div style="opacity: 0.9; font-size: 0.95rem;">
+                                    ${keyCount} key${keyCount !== 1 ? 's' : ''} | 
+                                    ${unusedKeys} unused
+                                </div>
+                            </div>
+                            <span class="key-status status-ready">
+                                ${item.orderStatus === 'download' ? '✅ Used' : '🔓 Ready'}
+                            </span>
+                        </div>
+                        <div class="keys-container">
+                            ${item.keys.map(key => `
+                                <div class="key-item">
+                                    <div>
+                                        <span class="key-code">${key.key}</span>
+                                        ${key.used ? 
+                                            `<span style="background: #ef4444; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; margin-left: 1rem;">
+                                                <i class="fas fa-check"></i> Used
+                                            </span>` : ''
+                                        }
+                                    </div>
+                                    <div class="key-actions">
+                                        <button class="copy-btn" onclick="copyKey('${key.key}')">
+                                            <i class="fas fa-copy"></i> Copy
+                                        </button>
+                                        ${!key.used ? `
+                                            <button class="download-btn" onclick="directDownload('${item.product.hostingUrl}', '${key.key}')">
+                                                <i class="fas fa-download"></i> Download APK
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // ✅ Copy key function
+        function copyKey(key) {
+            navigator.clipboard.writeText(key).then(() => {
+                showNotification('✅ Key copied to clipboard! Ready to use.', 'success');
+            }).catch(err => {
+                showNotification('Failed to copy. Please select manually.', 'error');
+            });
+        }
+        
+        // ✅ Direct download with key validation
+        async function directDownload(downloadUrl, key) {
+            showNotification('🔍 Validating key before download...', 'info');
+            
+            // Simple validation - check if key exists in any product
+            let valid = false;
+            for (const item of userProductsWithKeys) {
+                const keyObj = item.keys.find(k => k.key === key && !k.used);
+                if (keyObj) {
+                    valid = true;
+                    // Mark as used
+                    const keyIndex = item.keys.indexOf(keyObj);
+                    await db.ref(`shop/products/${item.productId}/keys/${keyIndex}`).update({
+                        used: true,
+                        usedBy: currentUser,
+                        usedAt: Date.now()
+                    });
+                    break;
+                }
+            }
+            
+            if (valid) {
+                showNotification('✅ Key validated! Starting download...', 'success');
+                window.open(downloadUrl, '_blank');
+            } else {
+                showNotification('❌ Invalid or already used key!', 'error');
+            }
+        }
+        
+        // ✅ Stats update
+        function updateStats() {
+            const totalKeys = userProductsWithKeys.reduce((sum, item) => sum + item.keys.length, 0);
+            const availableKeys = userProductsWithKeys.reduce((sum, item) =>
+                sum + item.keys.filter(k => !k.used).length, 0
+            );
+            const pendingOrders = Object.values(userOrders).filter(o => o.status === 'pending').length;
+            
+            document.getElementById('totalKeys').textContent = totalKeys;
+            document.getElementById('availableKeys').textContent = availableKeys;
+            document.getElementById('pendingOrders').textContent = pendingOrders;
+        }
+        
+        // ✅ Loading overlay
+        function showLoading(show = true, text = 'Loading...') {
+            let overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'loadingOverlay';
+                    overlay.style.cssText = `
+                        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                        background: rgba(0,0,0,0.8); z-index: 10000; display: flex; 
+                        align-items: center; justify-content: center;
+                    `;
+                    overlay.innerHTML = `
+                        <div style="text-align: center; color: white;">
+                            <div style="width: 50px; height: 50px; border: 3px solid #f3f4f6; 
+                                        border-top: 3px solid #10b981; border-radius: 50%; 
+                                        animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                            <div style="font-size: 1.1rem;">                            ${text}</div>
+                            </div>
+                            `;
+                    document.body.appendChild(overlay);
+                }
+            } else if (overlay) {
+                overlay.remove();
+            }
+        }
+        
+        // ✅ Notification system
+        function showNotification(message, type = 'success') {
+            const notif = document.createElement('div');
+            notif.style.cssText = `
+                            position: fixed; top: 20px; right: 20px;
+                            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                            color: white; padding: 1.25rem 2rem; border-radius: 16px; z-index: 10001;
+                            box-shadow: 0 20px 40px rgba(0,0,0,0.3); transform: translateX(400px);
+                            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 600;
+                            `;
+            notif.innerHTML = `
+                            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}" style="margin-right: 0.75rem;"></i>
+                            ${message}
+                            `;
+            document.body.appendChild(notif);
+            
+            // Animate in
+            requestAnimationFrame(() => notif.style.transform = 'translateX(0)');
+            
+            // Animate out
+            setTimeout(() => {
+                notif.style.transform = 'translateX(400px)';
+                setTimeout(() => notif.remove(), 400);
+            }, 4000);
+        }
+        
+        // ✅ Particles
+        function initParticles() {
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', {
+                    particles: {
+                        number: { value: 80 },
+                        color: { value: ['#10b981', '#34d399', '#3b82f6', '#8b5cf6'] },
+                        shape: { type: 'circle' },
+                        opacity: { value: 0.4, random: true },
+                        size: { value: 4, random: true },
+                        line_linked: {
+                            enable: true,
+                            distance: 150,
+                            color: '#10b981',
+                            opacity: 0.2,
+                            width: 1
+                        },
+                        move: { enable: true, speed: 2 }
+                    },
+                    interactivity: {
+                        events: {
+                            onhover: { enable: true, mode: 'repulse' },
+                            onclick: { enable: true, mode: 'push' }
+                        }
+                    },
+                    retina_detect: true
+                });
+            }
+        }
+        
+        // ✅ Handle direct product links from buyer-dashboard
+        function handleDirectLink() {
+            const hash = window.location.hash.substring(1);
+            if (hash && products[hash]) {
+                const productCard = document.querySelector(`[data-product-id="${hash}"]`);
+                if (productCard) {
+                    productCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    productCard.classList.add('active-product');
+                    setTimeout(() => productCard.classList.remove('active-product'), 3000);
+                    showNotification(`📱 Keys for ${products[hash].name} loaded!`, 'info');
+                }
+            }
+        }
+        
+        // Listen for data changes
+        db.ref('shop/orders').orderByChild('buyer').equalTo(currentUser).on('value', () => {
+            loadAllData();
+        });
+        
+        // Call after render
+        setTimeout(handleDirectLink, 500);
+    </script>
+</body>
+
+</html>
